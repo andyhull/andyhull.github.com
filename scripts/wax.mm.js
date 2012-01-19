@@ -1,4 +1,4 @@
-/* wax - 5.0.0-alpha1 - 1.0.4-486-g1efbc38 */
+/* wax - 4.1.5 - 1.0.4-481-g4c2189b */
 
 
 /*!
@@ -2387,6 +2387,7 @@ wax.mm = wax.mm || {};
 // ------------
 wax.mm.boxselector = function(map, tilejson, opts) {
     var mouseDownPoint = null,
+        MM = com.modestmaps,
         callback = ((typeof opts === 'function') ?
             opts :
             opts.callback),
@@ -2527,11 +2528,12 @@ wax.mm.bwdetect = function(map, options) {
     options = options || {};
     var lowpng = options.png || '.png128',
         lowjpg = options.jpg || '.jpg70',
+        mm = com.modestmaps,
         bw = 1;
 
     function setProvider(x) {
         // More or less detect the Wax version
-        if (!(x.options && x.options.scheme)) MM.Map.prototype.setProvider.call(map, x);
+        if (!(x.options && x.options.scheme)) mm.Map.prototype.setProvider.call(map, x);
         var swap = [['.png', '.jpg'], [lowpng, lowjpg]];
         if (bw) swap.reverse();
         for (var i = 0; i < x.options.tiles.length; i++) {
@@ -2539,7 +2541,7 @@ wax.mm.bwdetect = function(map, options) {
                 .replace(swap[0][0], swap[1][0])
                 .replace(swap[0][1], swap[1][1]);
         }
-        MM.Map.prototype.setProvider.call(map, x);
+        mm.Map.prototype.setProvider.call(map, x);
     }
 
     map.setProvider = setProvider;
@@ -2569,7 +2571,7 @@ wax.mm.fullscreen = function(map) {
         smallSize;
 
     function click(e) {
-        if (e) MM.cancelEvent(e);
+        if (e) com.modestmaps.cancelEvent(e);
         if (state) {
             fullscreen.original();
         } else {
@@ -2585,7 +2587,7 @@ wax.mm.fullscreen = function(map) {
         a.className = 'wax-fullscreen';
         a.href = '#fullscreen';
         a.innerHTML = 'fullscreen';
-        MM.addEvent(a, 'click', click);
+        com.modestmaps.addEvent(a, 'click', click);
         return this;
     };
     fullscreen.full = function() {
@@ -2631,7 +2633,7 @@ wax.mm.hash = function(map) {
         },
         setCenterZoom: function setCenterZoom(args) {
             map.setCenterZoom(
-                new MM.Location(args[1], args[2]),
+                new com.modestmaps.Location(args[1], args[2]),
                 args[0]);
         },
         bindChange: function(fn) {
@@ -2665,7 +2667,8 @@ wax.mm.interaction = function(map, tilejson, options) {
     options = options || {};
     tilejson = tilejson || {};
 
-    var waxGM = wax.GridManager(tilejson),
+    var MM = com.modestmaps,
+        waxGM = wax.GridManager(tilejson),
         callbacks = options.callbacks || new wax.tooltip(options),
         clickAction = options.clickAction || ['full', 'location'],
         clickHandler = options.clickHandler || function(url) {
@@ -2694,7 +2697,7 @@ wax.mm.interaction = function(map, tilejson, options) {
     function getTileGrid() {
         // TODO: don't build for tiles outside of viewport
         // Touch interaction leads to intermediate
-        var zoomLayer = map.getLayerAt(0).levels[Math.round(map.getZoom())];
+        var zoomLayer = map.createOrGetLayer(Math.round(map.getZoom()));
         // Calculate a tile grid and cache it, by using the `.tiles`
         // element on this map.
         return tileGrid || (tileGrid =
@@ -2707,7 +2710,7 @@ wax.mm.interaction = function(map, tilejson, options) {
                     }
                 }
                 return o;
-            })(map.getLayerAt(0).tiles));
+            })(map.tiles));
     }
 
     // When the map moves, the tile grid is no longer valid.
@@ -2908,13 +2911,14 @@ wax.mm = wax.mm || {};
 // Show the current cursor position in
 // lat/long
 wax.mm.latlngtooltip = function(map) {
-    var tt, // tooltip
+    var mm = com.modestmaps,
+        tt, // tooltip
         _down = false,
         latlng = {};
 
     function getMousePoint(e) {
         // start with just the mouse (x, y)
-        var point = new MM.Point(e.clientX, e.clientY);
+        var point = new mm.Point(e.clientX, e.clientY);
         // correct for scrolled document
         point.x += document.body.scrollLeft + document.documentElement.scrollLeft;
         point.y += document.body.scrollTop + document.documentElement.scrollTop;
@@ -2951,23 +2955,23 @@ wax.mm.latlngtooltip = function(map) {
         tt.innerHTML = fmt;
         pt.scale = pt.width = pt.height = 1;
         pt.x += 10;
-        MM.moveElement(tt, pt);
+        mm.moveElement(tt, pt);
         map.parent.appendChild(tt);
     }
 
     latlng.add = function() {
-        MM.addEvent(map.parent, 'mousemove', onMove);
-        MM.addEvent(map.parent, 'mousedown', onDown);
-        MM.addEvent(map.parent, 'mouseup', onUp);
+        mm.addEvent(map.parent, 'mousemove', onMove);
+        mm.addEvent(map.parent, 'mousedown', onDown);
+        mm.addEvent(map.parent, 'mouseup', onUp);
         tt = document.createElement('div');
         tt.className = 'wax-latlngtooltip';
         return this;
     };
 
     latlng.remove = function() {
-        MM.removeEvent(map.parent, 'mousemove', onMove);
-        MM.removeEvent(map.parent, 'mousedown', onDown);
-        MM.removeEvent(map.parent, 'mouseup', onUp);
+        mm.removeEvent(map.parent, 'mousemove', onMove);
+        mm.removeEvent(map.parent, 'mousedown', onDown);
+        mm.removeEvent(map.parent, 'mouseup', onUp);
         return this;
     };
 
@@ -3015,7 +3019,8 @@ wax.mm = wax.mm || {};
 wax.mm.mobile = function(map, tilejson, opts) {
     opts = opts || {};
     // Inspired by Leaflet
-    var ua = navigator.userAgent.toLowerCase(),
+    var mm = com.modestmaps,
+        ua = navigator.userAgent.toLowerCase(),
         isWebkit = ua.indexOf('webkit') != -1,
         isMobile = ua.indexOf('mobile') != -1,
         mobileWebkit = isMobile && isWebkit;
@@ -3148,8 +3153,8 @@ wax.mm.mobile = function(map, tilejson, opts) {
                 newBody.className = 'wax-mobile-body';
                 newBody.appendChild(backDiv);
 
-                MM.addEvent(overlayDiv, 'touchstart', this.toTouch);
-                MM.addEvent(backDiv, 'touchstart', this.toPage);
+                mm.addEvent(overlayDiv, 'touchstart', this.toTouch);
+                mm.addEvent(backDiv, 'touchstart', this.toPage);
 
             }
             return this;
@@ -3216,6 +3221,7 @@ wax.mm.pointselector = function(map, tilejson, opts) {
         mouseUpPoint = null,
         tolerance = 5,
         overlayDiv,
+        MM = com.modestmaps,
         pointselector = {},
         locations = [];
 
@@ -3354,13 +3360,14 @@ wax.mm = wax.mm || {};
 wax.mm.zoombox = function(map) {
     // TODO: respond to resize
     var zoombox = {},
+        mm = com.modestmaps,
         drawing = false,
         box,
         mouseDownPoint = null;
 
     function getMousePoint(e) {
         // start with just the mouse (x, y)
-        var point = new MM.Point(e.clientX, e.clientY);
+        var point = new mm.Point(e.clientX, e.clientY);
         // correct for scrolled document
         point.x += document.body.scrollLeft + document.documentElement.scrollLeft;
         point.y += document.body.scrollTop + document.documentElement.scrollTop;
@@ -3385,8 +3392,8 @@ wax.mm.zoombox = function(map) {
         map.setExtent([l1, l2]);
 
         box.style.display = 'none';
-        MM.removeEvent(map.parent, 'mousemove', mouseMove);
-        MM.removeEvent(map.parent, 'mouseup', mouseUp);
+        mm.removeEvent(map.parent, 'mousemove', mouseMove);
+        mm.removeEvent(map.parent, 'mouseup', mouseUp);
 
         map.parent.style.cursor = 'auto';
     }
@@ -3400,11 +3407,11 @@ wax.mm.zoombox = function(map) {
         box.style.left = mouseDownPoint.x + 'px';
         box.style.top = mouseDownPoint.y + 'px';
 
-        MM.addEvent(map.parent, 'mousemove', mouseMove);
-        MM.addEvent(map.parent, 'mouseup', mouseUp);
+        mm.addEvent(map.parent, 'mousemove', mouseMove);
+        mm.addEvent(map.parent, 'mouseup', mouseUp);
 
         map.parent.style.cursor = 'crosshair';
-        return MM.cancelEvent(e);
+        return mm.cancelEvent(e);
     }
 
     function mouseMove(e) {
@@ -3424,7 +3431,7 @@ wax.mm.zoombox = function(map) {
             box.style.top = mouseDownPoint.y + 'px';
         }
         box.style.height = Math.abs(point.y - mouseDownPoint.y) + 'px';
-        return MM.cancelEvent(e);
+        return mm.cancelEvent(e);
     }
 
     zoombox.add = function(map) {
@@ -3435,13 +3442,13 @@ wax.mm.zoombox = function(map) {
         box.id = map.parent.id + '-zoombox-box';
         box.className = 'zoombox-box';
         map.parent.appendChild(box);
-        MM.addEvent(map.parent, 'mousedown', mouseDown);
+        mm.addEvent(map.parent, 'mousedown', mouseDown);
         return this;
     };
 
     zoombox.remove = function() {
         map.parent.removeChild(box);
-        MM.removeEvent(map.parent, 'mousedown', mouseDown);
+        mm.removeEvent(map.parent, 'mousedown', mouseDown);
     };
 
     return zoombox.add(map);
@@ -3490,9 +3497,9 @@ wax.mm.zoomer = function(map) {
     var zoomer = {
         add: function(map) {
             map.addCallback('drawn', function(map, e) {
-                if (map.coordinate.zoom === map.coordLimits[0].zoom) {
+                if (map.coordinate.zoom === map.provider.outerLimits()[0].zoom) {
                     zoomout.className = 'zoomer zoomout zoomdisabled';
-                } else if (map.coordinate.zoom === map.coordLimits[1].zoom) {
+                } else if (map.coordinate.zoom === map.provider.outerLimits()[1].zoom) {
                     zoomin.className = 'zoomer zoomin zoomdisabled';
                 } else {
                     zoomin.className = 'zoomer zoomin';
@@ -3514,38 +3521,30 @@ wax.mm = wax.mm || {};
 
 // A layer connector for Modest Maps conformant to TileJSON
 // https://github.com/mapbox/tilejson
-wax.mm.connector = function(tj) {
+wax.mm.connector = function(options) {
     this.options = {
-        tiles: tj.tiles,
-        scheme: tj.scheme || 'xyz',
-        minzoom: tj.minzoom || 0,
-        maxzoom: tj.maxzoom || 22,
-        bounds: tj.bounds || [-180, -90, 180, 90]
+        tiles: options.tiles,
+        scheme: options.scheme || 'xyz',
+        minzoom: options.minzoom || 0,
+        maxzoom: options.maxzoom || 22,
+        bounds: options.bounds || [-180, -90, 180, 90]
     };
-
-    if (tj.bounds[0] == -180 && tj.bounds[1] == -90 &&
-        tj.bounds[2] == 180 && tj.bounds[3] == 90) {
-        this.tileLimits = [
-            new MM.Coordinate(0,0,0).zoomTo(tj.minzoom),             // top left outer
-            new MM.Coordinate(1,1,0).zoomTo(tj.maxzoom)
-        ];
-    } else {
-        var p = new MM.MercatorProjection(0,
-          MM.deriveTransformation(-Math.PI,  Math.PI, 0, 0,
-               Math.PI,  Math.PI, 1, 0,
-              -Math.PI, -Math.PI, 0, 1));
-
-        this.tileLimits = [
-            p.locationCoordinate(
-                new MM.Location(tj.bounds[1], tj.bounds[0])).zoomTo(tj.minzoom),
-            p.locationCoordinate(
-                new MM.Location(tj.bounds[3], tj.bounds[2])).zoomTo(tj.maxzoom)
-        ];
-    }
 };
 
 wax.mm.connector.prototype = {
-    getTile: function(c) {
+    outerLimits: function() {
+        return [
+            this.locationCoordinate(
+                new com.modestmaps.Location(
+                    this.options.bounds[0],
+                    this.options.bounds[1])).zoomTo(this.options.minzoom),
+            this.locationCoordinate(
+                new com.modestmaps.Location(
+                    this.options.bounds[2],
+                    this.options.bounds[3])).zoomTo(this.options.maxzoom)
+        ];
+    },
+    getTileUrl: function(c) {
         if (!(coord = this.sourceCoordinate(c))) return null;
 
         coord.row = (this.options.scheme === 'tms') ?
@@ -3562,17 +3561,6 @@ wax.mm.connector.prototype = {
 
 // Wax shouldn't throw any exceptions if the external it relies on isn't
 // present, so check for modestmaps.
-if (MM) {
-    MM.extend(wax.mm.connector, MM.MapProvider);
+if (com && com.modestmaps) {
+    com.modestmaps.extend(wax.mm.connector, com.modestmaps.MapProvider);
 }
-
-wax.mm.limit = function(tj) {
-    var p = new MM.MercatorProjection(0);
-
-    return [
-        p.locationCoordinate(
-            new MM.Location(tj.bounds[1], tj.bounds[0])).zoomTo(tj.minzoom),
-        p.locationCoordinate(
-            new MM.Location(tj.bounds[3], tj.bounds[2])).zoomTo(tj.maxzoom)
-    ];
-};
