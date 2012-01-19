@@ -1,7 +1,7 @@
 $(document).ready(function() {
 	var cycleMap, userCenter, userZoom;
 	var urls = {
-		'2011':'http://tiles.mapbox.com/newamerica/api/Tileset/newamerica.map-6erg384i'
+		'2011':'http://a.tiles.mapbox.com/v3/newamerica.map-of-the-week-poverty-change.jsonp'
 	};
 	buildMap(urls[2011]);
 	

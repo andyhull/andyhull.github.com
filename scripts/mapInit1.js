@@ -30,5 +30,4 @@ function newWaxMap(url, mapContainer, startLat, startLng, minZoom, maxZoom){
 	wax.mm.zoomer(m, tilejson).appendTo(m.parent);	
 	m.setCenterZoom(new mm.Location(startLat, startLng), minZoom);
 	});
-	console.log(m)
 }; //end newWaxMap
