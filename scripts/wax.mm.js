@@ -1,4 +1,4 @@
-/* wax - 3.0.8 - 1.0.4-396-g2818da4 */
+/* wax - 5.0.0-alpha1 - 1.0.4-486-g1efbc38 */
 
 
 /*!
@@ -7,204 +7,1371 @@
   * https://github.com/ded/reqwest
   * license MIT
   */
-!function(context,win){function serial(a){var b=a.name;if(a.disabled||!b)return"";b=enc(b);switch(a.tagName.toLowerCase()){case"input":switch(a.type){case"reset":case"button":case"image":case"file":return"";case"checkbox":case"radio":return a.checked?b+"="+(a.value?enc(a.value):!0)+"&":"";default:return b+"="+(a.value?enc(a.value):"")+"&"}break;case"textarea":return b+"="+enc(a.value)+"&";case"select":return b+"="+enc(a.options[a.selectedIndex].value)+"&"}return""}function enc(a){return encodeURIComponent(a)}function reqwest(a,b){return new Reqwest(a,b)}function init(o,fn){function error(a){o.error&&o.error(a),complete(a)}function success(resp){o.timeout&&clearTimeout(self.timeout)&&(self.timeout=null);var r=resp.responseText;if(r)switch(type){case"json":resp=win.JSON?win.JSON.parse(r):eval("("+r+")");break;case"js":resp=eval(r);break;case"html":resp=r}fn(resp),o.success&&o.success(resp),complete(resp)}function complete(a){o.complete&&o.complete(a)}this.url=typeof o=="string"?o:o.url,this.timeout=null;var type=o.type||setType(this.url),self=this;fn=fn||function(){},o.timeout&&(this.timeout=setTimeout(function(){self.abort(),error()},o.timeout)),this.request=getRequest(o,success,error)}function setType(a){if(/\.json$/.test(a))return"json";if(/\.jsonp$/.test(a))return"jsonp";if(/\.js$/.test(a))return"js";if(/\.html?$/.test(a))return"html";if(/\.xml$/.test(a))return"xml";return"js"}function Reqwest(a,b){this.o=a,this.fn=b,init.apply(this,arguments)}function getRequest(a,b,c){if(a.type!="jsonp"){var f=xhr();f.open(a.method||"GET",typeof a=="string"?a:a.url,!0),setHeaders(f,a),f.onreadystatechange=handleReadyState(f,b,c),a.before&&a.before(f),f.send(a.data||null);return f}var d=doc.createElement("script"),e=0;win[getCallbackName(a)]=generalCallback,d.type="text/javascript",d.src=a.url,d.async=!0,d.onload=d.onreadystatechange=function(){if(d[readyState]&&d[readyState]!=="complete"&&d[readyState]!=="loaded"||e)return!1;d.onload=d.onreadystatechange=null,a.success&&a.success(lastValue),lastValue=undefined,head.removeChild(d),e=1},head.appendChild(d)}function generalCallback(a){lastValue=a}function getCallbackName(a){var b=a.jsonpCallback||"callback";if(a.url.slice(-(b.length+2))==b+"=?"){var c="reqwest_"+uniqid++;a.url=a.url.substr(0,a.url.length-1)+c;return c}var d=new RegExp(b+"=([\\w]+)");return a.url.match(d)[1]}function setHeaders(a,b){var c=b.headers||{};c.Accept=c.Accept||"text/javascript, text/html, application/xml, text/xml, */*",b.crossOrigin||(c["X-Requested-With"]=c["X-Requested-With"]||"XMLHttpRequest"),c[contentType]=c[contentType]||"application/x-www-form-urlencoded";for(var d in c)c.hasOwnProperty(d)&&a.setRequestHeader(d,c[d],!1)}function handleReadyState(a,b,c){return function(){a&&a[readyState]==4&&(twoHundo.test(a.status)?b(a):c(a))}}var twoHundo=/^20\d$/,doc=document,byTag="getElementsByTagName",readyState="readyState",contentType="Content-Type",head=doc[byTag]("head")[0],uniqid=0,lastValue,xhr="XMLHttpRequest"in win?function(){return new XMLHttpRequest}:function(){return new ActiveXObject("Microsoft.XMLHTTP")};Reqwest.prototype={abort:function(){this.request.abort()},retry:function(){init.call(this,this.o,this.fn)}},reqwest.serialize=function(a){var b=[a[byTag]("input"),a[byTag]("select"),a[byTag]("textarea")],c=[],d,e;for(d=0,l=b.length;d<l;++d)for(e=0,l2=b[d].length;e<l2;++e)c.push(serial(b[d][e]));return c.join("").replace(/&$/,"")},reqwest.serializeArray=function(a){for(var b=this.serialize(a).split("&"),c=0,d=b.length,e=[],f;c<d;c++)b[c]&&(f=b[c].split("="))&&e.push({name:f[0],value:f[1]});return e};var old=context.reqwest;reqwest.noConflict=function(){context.reqwest=old;return this},typeof module!="undefined"?module.exports=reqwest:context.reqwest=reqwest}(this,window)// Instantiate objects based on a JSON "record". The record must be a statement
-// array in the following form:
-//
-//     [ "{verb} {subject}", arg0, arg1, arg2, ... argn ]
-//
-// Each record is processed from a passed `context` which starts from the
-// global (ie. `window`) context if unspecified.
-//
-// - `@literal` Evaluate `subject` and return its value as a scalar. Useful for
-//   referencing API constants, object properties or other values.
-// - `@new` Call `subject` as a constructor with args `arg0 - argn`. The
-//   newly created object will be the new context.
-// - `@call` Call `subject` as a function with args `arg0 - argn` in the
-//   global namespace. The return value will be the new context.
-// - `@chain` Call `subject` as a method of the current context with args `arg0
-//   - argn`. The return value will be the new context.
-// - `@inject` Call `subject` as a method of the current context with args
-//   `arg0 - argn`. The return value will *not* affect the context.
-// - `@group` Treat `arg0 - argn` as a series of statement arrays that share a
-//   context. Each statement will be called in serial and affect the context
-//   for the next statement.
-//
-// Usage:
-//
-//     var gmap = ['@new google.maps.Map',
-//         ['@call document.getElementById', 'gmap'],
-//         {
-//             center: [ '@new google.maps.LatLng', 0, 0 ],
-//             zoom: 2,
-//             mapTypeId: [ '@literal google.maps.MapTypeId.ROADMAP' ]
-//         }
-//     ];
-//     wax.Record(gmap);
-var wax = wax || {};
-
-
-// TODO: replace with non-global-modifier
-// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/Reduce
-if (!Array.prototype.reduce) {
-  Array.prototype.reduce = function(fun /*, initialValue */) {
-    "use strict";
-
-    if (this === void 0 || this === null)
-      throw new TypeError();
-
-    var t = Object(this);
-    var len = t.length >>> 0;
-    if (typeof fun !== "function")
-      throw new TypeError();
-
-    // no value to return if no initial value and an empty array
-    if (len == 0 && arguments.length == 1)
-      throw new TypeError();
-
-    var k = 0;
-    var accumulator;
-    if (arguments.length >= 2) {
-      accumulator = arguments[1];
-    } else {
-      do {
-        if (k in t) {
-          accumulator = t[k++];
-          break;
-        }
-
-        // if array contains no values, no initial value to return
-        if (++k >= len)
-          throw new TypeError();
-      }
-      while (true);
-    }
-
-    while (k < len) {
-      if (k in t)
-        accumulator = fun.call(undefined, accumulator, t[k], k, t);
-      k++;
-    }
-
-    return accumulator;
-  };
-}
-
-
-wax.Record = function(obj, context) {
-    var getFunction = function(head, cur) {
-        // TODO: strip out reduce
-        var ret = head.split('.').reduce(function(part, segment) {
-            return [part[1] || part[0], part[1] ? part[1][segment] : part[0][segment]];
-        }, [cur || window, null]);
-        if (ret[0] && ret[1]) {
-            return ret;
-        } else {
-            throw head + ' not found.';
-        }
-    };
-    var makeObject = function(fn_name, args) {
-        var fn_obj = getFunction(fn_name),
-            obj;
-        args = args.length ? wax.Record(args) : [];
-
-        // real browsers
-        if (Object.create) {
-            obj = Object.create(fn_obj[1].prototype);
-            fn_obj[1].apply(obj, args);
-        // lord have mercy on your soul.
-        } else {
-            switch (args.length) {
-                case 0: obj = new fn_obj[1](); break;
-                case 1: obj = new fn_obj[1](args[0]); break;
-                case 2: obj = new fn_obj[1](args[0], args[1]); break;
-                case 3: obj = new fn_obj[1](args[0], args[1], args[2]); break;
-                case 4: obj = new fn_obj[1](args[0], args[1], args[2], args[3]); break;
-                case 5: obj = new fn_obj[1](args[0], args[1], args[2], args[3], args[4]); break;
-                default: break;
-            }
-        }
-        return obj;
-    };
-    var runFunction = function(fn_name, args, cur) {
-        var fn_obj = getFunction(fn_name, cur);
-        var fn_args = args.length ? wax.Record(args) : [];
-        // @TODO: This is currently a stopgap measure that calls methods like
-        // `foo.bar()` in the context of `foo`. It will probably be necessary
-        // in the future to be able to call `foo.bar()` from other contexts.
-        if (cur && fn_name.indexOf('.') === -1) {
-            return fn_obj[1].apply(cur, fn_args);
-        } else {
-            return fn_obj[1].apply(fn_obj[0], fn_args);
-        }
-    };
-    var isKeyword = function(string) {
-        return wax.util.isString(string) && (wax.util.indexOf([
-            '@new',
-            '@call',
-            '@literal',
-            '@chain',
-            '@inject',
-            '@group'
-        ], string.split(' ')[0]) !== -1);
-    };
-    var altersContext = function(string) {
-        return wax.util.isString(string) && (wax.util.indexOf([
-            '@new',
-            '@call',
-            '@chain'
-        ], string.split(' ')[0]) !== -1);
-    };
-    var getStatement = function(obj) {
-        if (wax.util.isArray(obj) && obj[0] && isKeyword(obj[0])) {
-            return {
-                verb: obj[0].split(' ')[0],
-                subject: obj[0].split(' ')[1],
-                object: obj.slice(1)
-            };
-        }
-        return false;
-    };
-
-    var i,
-        fn = false,
-        ret = null,
-        child = null,
-        statement = getStatement(obj);
-    if (statement) {
-        switch (statement.verb) {
-        case '@group':
-            for (i = 0; i < statement.object.length; i++) {
-                ret = wax.Record(statement.object[i], context);
-                child = getStatement(statement.object[i]);
-                if (child && altersContext(child.verb)) {
-                    context = ret;
-                }
-            }
-            return context;
-        case '@new':
-            return makeObject(statement.subject, statement.object);
-        case '@literal':
-            fn = getFunction(statement.subject);
-            return fn ? fn[1] : null;
-        case '@inject':
-            return runFunction(statement.subject, statement.object, context);
-        case '@chain':
-            return runFunction(statement.subject, statement.object, context);
-        case '@call':
-            return runFunction(statement.subject, statement.object, null);
-        }
-    } else if (obj !== null && typeof obj === 'object') {
-        var keys = wax.util.keys(obj);
-        for (i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            obj[key] = wax.Record(obj[key], context);
-        }
-        return obj;
-    } else {
-        return obj;
-    }
+!function(context,win){function serial(a){var b=a.name;if(a.disabled||!b)return"";b=enc(b);switch(a.tagName.toLowerCase()){case"input":switch(a.type){case"reset":case"button":case"image":case"file":return"";case"checkbox":case"radio":return a.checked?b+"="+(a.value?enc(a.value):!0)+"&":"";default:return b+"="+(a.value?enc(a.value):"")+"&"}break;case"textarea":return b+"="+enc(a.value)+"&";case"select":return b+"="+enc(a.options[a.selectedIndex].value)+"&"}return""}function enc(a){return encodeURIComponent(a)}function reqwest(a,b){return new Reqwest(a,b)}function init(o,fn){function error(a){o.error&&o.error(a),complete(a)}function success(resp){o.timeout&&clearTimeout(self.timeout)&&(self.timeout=null);var r=resp.responseText;if(r)switch(type){case"json":resp=win.JSON?win.JSON.parse(r):eval("("+r+")");break;case"js":resp=eval(r);break;case"html":resp=r}fn(resp),o.success&&o.success(resp),complete(resp)}function complete(a){o.complete&&o.complete(a)}this.url=typeof o=="string"?o:o.url,this.timeout=null;var type=o.type||setType(this.url),self=this;fn=fn||function(){},o.timeout&&(this.timeout=setTimeout(function(){self.abort(),error()},o.timeout)),this.request=getRequest(o,success,error)}function setType(a){if(/\.json$/.test(a))return"json";if(/\.jsonp$/.test(a))return"jsonp";if(/\.js$/.test(a))return"js";if(/\.html?$/.test(a))return"html";if(/\.xml$/.test(a))return"xml";return"js"}function Reqwest(a,b){this.o=a,this.fn=b,init.apply(this,arguments)}function getRequest(a,b,c){if(a.type!="jsonp"){var f=xhr();f.open(a.method||"GET",typeof a=="string"?a:a.url,!0),setHeaders(f,a),f.onreadystatechange=handleReadyState(f,b,c),a.before&&a.before(f),f.send(a.data||null);return f}var d=doc.createElement("script"),e=0;win[getCallbackName(a)]=generalCallback,d.type="text/javascript",d.src=a.url,d.async=!0,d.onload=d.onreadystatechange=function(){if(d[readyState]&&d[readyState]!=="complete"&&d[readyState]!=="loaded"||e)return!1;d.onload=d.onreadystatechange=null,a.success&&a.success(lastValue),lastValue=undefined,head.removeChild(d),e=1},head.appendChild(d)}function generalCallback(a){lastValue=a}function getCallbackName(a){var b=a.jsonpCallback||"callback";if(a.url.slice(-(b.length+2))==b+"=?"){var c="reqwest_"+uniqid++;a.url=a.url.substr(0,a.url.length-1)+c;return c}var d=new RegExp(b+"=([\\w]+)");return a.url.match(d)[1]}function setHeaders(a,b){var c=b.headers||{};c.Accept=c.Accept||"text/javascript, text/html, application/xml, text/xml, */*",b.crossOrigin||(c["X-Requested-With"]=c["X-Requested-With"]||"XMLHttpRequest"),c[contentType]=c[contentType]||"application/x-www-form-urlencoded";for(var d in c)c.hasOwnProperty(d)&&a.setRequestHeader(d,c[d],!1)}function handleReadyState(a,b,c){return function(){a&&a[readyState]==4&&(twoHundo.test(a.status)?b(a):c(a))}}var twoHundo=/^20\d$/,doc=document,byTag="getElementsByTagName",readyState="readyState",contentType="Content-Type",head=doc[byTag]("head")[0],uniqid=0,lastValue,xhr="XMLHttpRequest"in win?function(){return new XMLHttpRequest}:function(){return new ActiveXObject("Microsoft.XMLHTTP")};Reqwest.prototype={abort:function(){this.request.abort()},retry:function(){init.call(this,this.o,this.fn)}},reqwest.serialize=function(a){var b=[a[byTag]("input"),a[byTag]("select"),a[byTag]("textarea")],c=[],d,e;for(d=0,l=b.length;d<l;++d)for(e=0,l2=b[d].length;e<l2;++e)c.push(serial(b[d][e]));return c.join("").replace(/&$/,"")},reqwest.serializeArray=function(a){for(var b=this.serialize(a).split("&"),c=0,d=b.length,e=[],f;c<d;c++)b[c]&&(f=b[c].split("="))&&e.push({name:f[0],value:f[1]});return e};var old=context.reqwest;reqwest.noConflict=function(){context.reqwest=old;return this},typeof module!="undefined"?module.exports=reqwest:context.reqwest=reqwest}(this,window)// Copyright Google Inc.
+// Licensed under the Apache Licence Version 2.0
+// Autogenerated at Tue Oct 11 13:36:46 EDT 2011
+// @provides html4
+var html4 = {};
+html4.atype = {
+  NONE: 0,
+  URI: 1,
+  URI_FRAGMENT: 11,
+  SCRIPT: 2,
+  STYLE: 3,
+  ID: 4,
+  IDREF: 5,
+  IDREFS: 6,
+  GLOBAL_NAME: 7,
+  LOCAL_NAME: 8,
+  CLASSES: 9,
+  FRAME_TARGET: 10
 };
-wax = wax || {};
+html4.ATTRIBS = {
+  '*::class': 9,
+  '*::dir': 0,
+  '*::id': 4,
+  '*::lang': 0,
+  '*::onclick': 2,
+  '*::ondblclick': 2,
+  '*::onkeydown': 2,
+  '*::onkeypress': 2,
+  '*::onkeyup': 2,
+  '*::onload': 2,
+  '*::onmousedown': 2,
+  '*::onmousemove': 2,
+  '*::onmouseout': 2,
+  '*::onmouseover': 2,
+  '*::onmouseup': 2,
+  '*::style': 3,
+  '*::title': 0,
+  'a::accesskey': 0,
+  'a::coords': 0,
+  'a::href': 1,
+  'a::hreflang': 0,
+  'a::name': 7,
+  'a::onblur': 2,
+  'a::onfocus': 2,
+  'a::rel': 0,
+  'a::rev': 0,
+  'a::shape': 0,
+  'a::tabindex': 0,
+  'a::target': 10,
+  'a::type': 0,
+  'area::accesskey': 0,
+  'area::alt': 0,
+  'area::coords': 0,
+  'area::href': 1,
+  'area::nohref': 0,
+  'area::onblur': 2,
+  'area::onfocus': 2,
+  'area::shape': 0,
+  'area::tabindex': 0,
+  'area::target': 10,
+  'bdo::dir': 0,
+  'blockquote::cite': 1,
+  'br::clear': 0,
+  'button::accesskey': 0,
+  'button::disabled': 0,
+  'button::name': 8,
+  'button::onblur': 2,
+  'button::onfocus': 2,
+  'button::tabindex': 0,
+  'button::type': 0,
+  'button::value': 0,
+  'canvas::height': 0,
+  'canvas::width': 0,
+  'caption::align': 0,
+  'col::align': 0,
+  'col::char': 0,
+  'col::charoff': 0,
+  'col::span': 0,
+  'col::valign': 0,
+  'col::width': 0,
+  'colgroup::align': 0,
+  'colgroup::char': 0,
+  'colgroup::charoff': 0,
+  'colgroup::span': 0,
+  'colgroup::valign': 0,
+  'colgroup::width': 0,
+  'del::cite': 1,
+  'del::datetime': 0,
+  'dir::compact': 0,
+  'div::align': 0,
+  'dl::compact': 0,
+  'font::color': 0,
+  'font::face': 0,
+  'font::size': 0,
+  'form::accept': 0,
+  'form::action': 1,
+  'form::autocomplete': 0,
+  'form::enctype': 0,
+  'form::method': 0,
+  'form::name': 7,
+  'form::onreset': 2,
+  'form::onsubmit': 2,
+  'form::target': 10,
+  'h1::align': 0,
+  'h2::align': 0,
+  'h3::align': 0,
+  'h4::align': 0,
+  'h5::align': 0,
+  'h6::align': 0,
+  'hr::align': 0,
+  'hr::noshade': 0,
+  'hr::size': 0,
+  'hr::width': 0,
+  'iframe::align': 0,
+  'iframe::frameborder': 0,
+  'iframe::height': 0,
+  'iframe::marginheight': 0,
+  'iframe::marginwidth': 0,
+  'iframe::width': 0,
+  'img::align': 0,
+  'img::alt': 0,
+  'img::border': 0,
+  'img::height': 0,
+  'img::hspace': 0,
+  'img::ismap': 0,
+  'img::name': 7,
+  'img::src': 1,
+  'img::usemap': 11,
+  'img::vspace': 0,
+  'img::width': 0,
+  'input::accept': 0,
+  'input::accesskey': 0,
+  'input::align': 0,
+  'input::alt': 0,
+  'input::autocomplete': 0,
+  'input::checked': 0,
+  'input::disabled': 0,
+  'input::ismap': 0,
+  'input::maxlength': 0,
+  'input::name': 8,
+  'input::onblur': 2,
+  'input::onchange': 2,
+  'input::onfocus': 2,
+  'input::onselect': 2,
+  'input::readonly': 0,
+  'input::size': 0,
+  'input::src': 1,
+  'input::tabindex': 0,
+  'input::type': 0,
+  'input::usemap': 11,
+  'input::value': 0,
+  'ins::cite': 1,
+  'ins::datetime': 0,
+  'label::accesskey': 0,
+  'label::for': 5,
+  'label::onblur': 2,
+  'label::onfocus': 2,
+  'legend::accesskey': 0,
+  'legend::align': 0,
+  'li::type': 0,
+  'li::value': 0,
+  'map::name': 7,
+  'menu::compact': 0,
+  'ol::compact': 0,
+  'ol::start': 0,
+  'ol::type': 0,
+  'optgroup::disabled': 0,
+  'optgroup::label': 0,
+  'option::disabled': 0,
+  'option::label': 0,
+  'option::selected': 0,
+  'option::value': 0,
+  'p::align': 0,
+  'pre::width': 0,
+  'q::cite': 1,
+  'select::disabled': 0,
+  'select::multiple': 0,
+  'select::name': 8,
+  'select::onblur': 2,
+  'select::onchange': 2,
+  'select::onfocus': 2,
+  'select::size': 0,
+  'select::tabindex': 0,
+  'table::align': 0,
+  'table::bgcolor': 0,
+  'table::border': 0,
+  'table::cellpadding': 0,
+  'table::cellspacing': 0,
+  'table::frame': 0,
+  'table::rules': 0,
+  'table::summary': 0,
+  'table::width': 0,
+  'tbody::align': 0,
+  'tbody::char': 0,
+  'tbody::charoff': 0,
+  'tbody::valign': 0,
+  'td::abbr': 0,
+  'td::align': 0,
+  'td::axis': 0,
+  'td::bgcolor': 0,
+  'td::char': 0,
+  'td::charoff': 0,
+  'td::colspan': 0,
+  'td::headers': 6,
+  'td::height': 0,
+  'td::nowrap': 0,
+  'td::rowspan': 0,
+  'td::scope': 0,
+  'td::valign': 0,
+  'td::width': 0,
+  'textarea::accesskey': 0,
+  'textarea::cols': 0,
+  'textarea::disabled': 0,
+  'textarea::name': 8,
+  'textarea::onblur': 2,
+  'textarea::onchange': 2,
+  'textarea::onfocus': 2,
+  'textarea::onselect': 2,
+  'textarea::readonly': 0,
+  'textarea::rows': 0,
+  'textarea::tabindex': 0,
+  'tfoot::align': 0,
+  'tfoot::char': 0,
+  'tfoot::charoff': 0,
+  'tfoot::valign': 0,
+  'th::abbr': 0,
+  'th::align': 0,
+  'th::axis': 0,
+  'th::bgcolor': 0,
+  'th::char': 0,
+  'th::charoff': 0,
+  'th::colspan': 0,
+  'th::headers': 6,
+  'th::height': 0,
+  'th::nowrap': 0,
+  'th::rowspan': 0,
+  'th::scope': 0,
+  'th::valign': 0,
+  'th::width': 0,
+  'thead::align': 0,
+  'thead::char': 0,
+  'thead::charoff': 0,
+  'thead::valign': 0,
+  'tr::align': 0,
+  'tr::bgcolor': 0,
+  'tr::char': 0,
+  'tr::charoff': 0,
+  'tr::valign': 0,
+  'ul::compact': 0,
+  'ul::type': 0
+};
+html4.eflags = {
+  OPTIONAL_ENDTAG: 1,
+  EMPTY: 2,
+  CDATA: 4,
+  RCDATA: 8,
+  UNSAFE: 16,
+  FOLDABLE: 32,
+  SCRIPT: 64,
+  STYLE: 128
+};
+html4.ELEMENTS = {
+  'a': 0,
+  'abbr': 0,
+  'acronym': 0,
+  'address': 0,
+  'applet': 16,
+  'area': 2,
+  'b': 0,
+  'base': 18,
+  'basefont': 18,
+  'bdo': 0,
+  'big': 0,
+  'blockquote': 0,
+  'body': 49,
+  'br': 2,
+  'button': 0,
+  'canvas': 0,
+  'caption': 0,
+  'center': 0,
+  'cite': 0,
+  'code': 0,
+  'col': 2,
+  'colgroup': 1,
+  'dd': 1,
+  'del': 0,
+  'dfn': 0,
+  'dir': 0,
+  'div': 0,
+  'dl': 0,
+  'dt': 1,
+  'em': 0,
+  'fieldset': 0,
+  'font': 0,
+  'form': 0,
+  'frame': 18,
+  'frameset': 16,
+  'h1': 0,
+  'h2': 0,
+  'h3': 0,
+  'h4': 0,
+  'h5': 0,
+  'h6': 0,
+  'head': 49,
+  'hr': 2,
+  'html': 49,
+  'i': 0,
+  'iframe': 4,
+  'img': 2,
+  'input': 2,
+  'ins': 0,
+  'isindex': 18,
+  'kbd': 0,
+  'label': 0,
+  'legend': 0,
+  'li': 1,
+  'link': 18,
+  'map': 0,
+  'menu': 0,
+  'meta': 18,
+  'nobr': 0,
+  'noembed': 4,
+  'noframes': 20,
+  'noscript': 20,
+  'object': 16,
+  'ol': 0,
+  'optgroup': 0,
+  'option': 1,
+  'p': 1,
+  'param': 18,
+  'pre': 0,
+  'q': 0,
+  's': 0,
+  'samp': 0,
+  'script': 84,
+  'select': 0,
+  'small': 0,
+  'span': 0,
+  'strike': 0,
+  'strong': 0,
+  'style': 148,
+  'sub': 0,
+  'sup': 0,
+  'table': 0,
+  'tbody': 1,
+  'td': 1,
+  'textarea': 8,
+  'tfoot': 1,
+  'th': 1,
+  'thead': 1,
+  'title': 24,
+  'tr': 1,
+  'tt': 0,
+  'u': 0,
+  'ul': 0,
+  'var': 0
+};
+html4.ueffects = {
+  NOT_LOADED: 0,
+  SAME_DOCUMENT: 1,
+  NEW_DOCUMENT: 2
+};
+html4.URIEFFECTS = {
+  'a::href': 2,
+  'area::href': 2,
+  'blockquote::cite': 0,
+  'body::background': 1,
+  'del::cite': 0,
+  'form::action': 2,
+  'img::src': 1,
+  'input::src': 1,
+  'ins::cite': 0,
+  'q::cite': 0
+};
+html4.ltypes = {
+  UNSANDBOXED: 2,
+  SANDBOXED: 1,
+  DATA: 0
+};
+html4.LOADERTYPES = {
+  'a::href': 2,
+  'area::href': 2,
+  'blockquote::cite': 2,
+  'body::background': 1,
+  'del::cite': 2,
+  'form::action': 2,
+  'img::src': 1,
+  'input::src': 1,
+  'ins::cite': 2,
+  'q::cite': 2
+};;
+// Copyright (C) 2006 Google Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview
+ * An HTML sanitizer that can satisfy a variety of security policies.
+ *
+ * <p>
+ * The HTML sanitizer is built around a SAX parser and HTML element and
+ * attributes schemas.
+ *
+ * @author mikesamuel@gmail.com
+ * @requires html4
+ * @overrides window
+ * @provides html, html_sanitize
+ */
+
+/**
+ * @namespace
+ */
+var html = (function (html4) {
+  var lcase;
+  // The below may not be true on browsers in the Turkish locale.
+  if ('script' === 'SCRIPT'.toLowerCase()) {
+    lcase = function (s) { return s.toLowerCase(); };
+  } else {
+    /**
+     * {@updoc
+     * $ lcase('SCRIPT')
+     * # 'script'
+     * $ lcase('script')
+     * # 'script'
+     * }
+     */
+    lcase = function (s) {
+      return s.replace(
+          /[A-Z]/g,
+          function (ch) {
+            return String.fromCharCode(ch.charCodeAt(0) | 32);
+          });
+    };
+  }
+
+  var ENTITIES = {
+    lt   : '<',
+    gt   : '>',
+    amp  : '&',
+    nbsp : '\240',
+    quot : '"',
+    apos : '\''
+  };
+  
+  // Schemes on which to defer to uripolicy. Urls with other schemes are denied
+  var WHITELISTED_SCHEMES = /^(?:https?|mailto|data)$/i;
+
+  var decimalEscapeRe = /^#(\d+)$/;
+  var hexEscapeRe = /^#x([0-9A-Fa-f]+)$/;
+  /**
+   * Decodes an HTML entity.
+   *
+   * {@updoc
+   * $ lookupEntity('lt')
+   * # '<'
+   * $ lookupEntity('GT')
+   * # '>'
+   * $ lookupEntity('amp')
+   * # '&'
+   * $ lookupEntity('nbsp')
+   * # '\xA0'
+   * $ lookupEntity('apos')
+   * # "'"
+   * $ lookupEntity('quot')
+   * # '"'
+   * $ lookupEntity('#xa')
+   * # '\n'
+   * $ lookupEntity('#10')
+   * # '\n'
+   * $ lookupEntity('#x0a')
+   * # '\n'
+   * $ lookupEntity('#010')
+   * # '\n'
+   * $ lookupEntity('#x00A')
+   * # '\n'
+   * $ lookupEntity('Pi')      // Known failure
+   * # '\u03A0'
+   * $ lookupEntity('pi')      // Known failure
+   * # '\u03C0'
+   * }
+   *
+   * @param name the content between the '&' and the ';'.
+   * @return a single unicode code-point as a string.
+   */
+  function lookupEntity(name) {
+    name = lcase(name);  // TODO: &pi; is different from &Pi;
+    if (ENTITIES.hasOwnProperty(name)) { return ENTITIES[name]; }
+    var m = name.match(decimalEscapeRe);
+    if (m) {
+      return String.fromCharCode(parseInt(m[1], 10));
+    } else if (!!(m = name.match(hexEscapeRe))) {
+      return String.fromCharCode(parseInt(m[1], 16));
+    }
+    return '';
+  }
+
+  function decodeOneEntity(_, name) {
+    return lookupEntity(name);
+  }
+
+  var nulRe = /\0/g;
+  function stripNULs(s) {
+    return s.replace(nulRe, '');
+  }
+
+  var entityRe = /&(#\d+|#x[0-9A-Fa-f]+|\w+);/g;
+  /**
+   * The plain text of a chunk of HTML CDATA which possibly containing.
+   *
+   * {@updoc
+   * $ unescapeEntities('')
+   * # ''
+   * $ unescapeEntities('hello World!')
+   * # 'hello World!'
+   * $ unescapeEntities('1 &lt; 2 &amp;&AMP; 4 &gt; 3&#10;')
+   * # '1 < 2 && 4 > 3\n'
+   * $ unescapeEntities('&lt;&lt <- unfinished entity&gt;')
+   * # '<&lt <- unfinished entity>'
+   * $ unescapeEntities('/foo?bar=baz&copy=true')  // & often unescaped in URLS
+   * # '/foo?bar=baz&copy=true'
+   * $ unescapeEntities('pi=&pi;&#x3c0;, Pi=&Pi;\u03A0') // FIXME: known failure
+   * # 'pi=\u03C0\u03c0, Pi=\u03A0\u03A0'
+   * }
+   *
+   * @param s a chunk of HTML CDATA.  It must not start or end inside an HTML
+   *   entity.
+   */
+  function unescapeEntities(s) {
+    return s.replace(entityRe, decodeOneEntity);
+  }
+
+  var ampRe = /&/g;
+  var looseAmpRe = /&([^a-z#]|#(?:[^0-9x]|x(?:[^0-9a-f]|$)|$)|$)/gi;
+  var ltRe = /</g;
+  var gtRe = />/g;
+  var quotRe = /\"/g;
+  var eqRe = /\=/g;  // Backslash required on JScript.net
+
+  /**
+   * Escapes HTML special characters in attribute values as HTML entities.
+   *
+   * {@updoc
+   * $ escapeAttrib('')
+   * # ''
+   * $ escapeAttrib('"<<&==&>>"')  // Do not just escape the first occurrence.
+   * # '&#34;&lt;&lt;&amp;&#61;&#61;&amp;&gt;&gt;&#34;'
+   * $ escapeAttrib('Hello <World>!')
+   * # 'Hello &lt;World&gt;!'
+   * }
+   */
+  function escapeAttrib(s) {
+    // Escaping '=' defangs many UTF-7 and SGML short-tag attacks.
+    return s.replace(ampRe, '&amp;').replace(ltRe, '&lt;').replace(gtRe, '&gt;')
+        .replace(quotRe, '&#34;').replace(eqRe, '&#61;');
+  }
+
+  /**
+   * Escape entities in RCDATA that can be escaped without changing the meaning.
+   * {@updoc
+   * $ normalizeRCData('1 < 2 &&amp; 3 > 4 &amp;& 5 &lt; 7&8')
+   * # '1 &lt; 2 &amp;&amp; 3 &gt; 4 &amp;&amp; 5 &lt; 7&amp;8'
+   * }
+   */
+  function normalizeRCData(rcdata) {
+    return rcdata
+        .replace(looseAmpRe, '&amp;$1')
+        .replace(ltRe, '&lt;')
+        .replace(gtRe, '&gt;');
+  }
+
+
+  // TODO(mikesamuel): validate sanitizer regexs against the HTML5 grammar at
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/syntax.html
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/tokenization.html
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/tree-construction.html
+
+  /** token definitions. */
+  var INSIDE_TAG_TOKEN = new RegExp(
+      // Don't capture space.
+      '^\\s*(?:'
+      // Capture an attribute name in group 1, and value in group 3.
+      // We capture the fact that there was an attribute in group 2, since
+      // interpreters are inconsistent in whether a group that matches nothing
+      // is null, undefined, or the empty string.
+      + ('(?:'
+         + '([a-z][a-z-]*)'                    // attribute name
+         + ('('                                // optionally followed
+            + '\\s*=\\s*'
+            + ('('
+               // A double quoted string.
+               + '\"[^\"]*\"'
+               // A single quoted string.
+               + '|\'[^\']*\''
+               // The positive lookahead is used to make sure that in
+               // <foo bar= baz=boo>, the value for bar is blank, not "baz=boo".
+               + '|(?=[a-z][a-z-]*\\s*=)'
+               // An unquoted value that is not an attribute name.
+               // We know it is not an attribute name because the previous
+               // zero-width match would've eliminated that possibility.
+               + '|[^>\"\'\\s]*'
+               + ')'
+               )
+            + ')'
+            ) + '?'
+         + ')'
+         )
+      // End of tag captured in group 3.
+      + '|(\/?>)'
+      // Don't capture cruft
+      + '|[\\s\\S][^a-z\\s>]*)',
+      'i');
+
+  var OUTSIDE_TAG_TOKEN = new RegExp(
+      '^(?:'
+      // Entity captured in group 1.
+      + '&(\\#[0-9]+|\\#[x][0-9a-f]+|\\w+);'
+      // Comment, doctypes, and processing instructions not captured.
+      + '|<\!--[\\s\\S]*?--\>|<!\\w[^>]*>|<\\?[^>*]*>'
+      // '/' captured in group 2 for close tags, and name captured in group 3.
+      + '|<(\/)?([a-z][a-z0-9]*)'
+      // Text captured in group 4.
+      + '|([^<&>]+)'
+      // Cruft captured in group 5.
+      + '|([<&>]))',
+      'i');
+
+  /**
+   * Given a SAX-like event handler, produce a function that feeds those
+   * events and a parameter to the event handler.
+   *
+   * The event handler has the form:{@code
+   * {
+   *   // Name is an upper-case HTML tag name.  Attribs is an array of
+   *   // alternating upper-case attribute names, and attribute values.  The
+   *   // attribs array is reused by the parser.  Param is the value passed to
+   *   // the saxParser.
+   *   startTag: function (name, attribs, param) { ... },
+   *   endTag:   function (name, param) { ... },
+   *   pcdata:   function (text, param) { ... },
+   *   rcdata:   function (text, param) { ... },
+   *   cdata:    function (text, param) { ... },
+   *   startDoc: function (param) { ... },
+   *   endDoc:   function (param) { ... }
+   * }}
+   *
+   * @param {Object} handler a record containing event handlers.
+   * @return {Function} that takes a chunk of html and a parameter.
+   *   The parameter is passed on to the handler methods.
+   */
+  function makeSaxParser(handler) {
+    return function parse(htmlText, param) {
+      htmlText = String(htmlText);
+      var htmlLower = null;
+
+      var inTag = false;  // True iff we're currently processing a tag.
+      var attribs = [];  // Accumulates attribute names and values.
+      var tagName = void 0;  // The name of the tag currently being processed.
+      var eflags = void 0;  // The element flags for the current tag.
+      var openTag = void 0;  // True if the current tag is an open tag.
+
+      if (handler.startDoc) { handler.startDoc(param); }
+
+      while (htmlText) {
+        var m = htmlText.match(inTag ? INSIDE_TAG_TOKEN : OUTSIDE_TAG_TOKEN);
+        htmlText = htmlText.substring(m[0].length);
+
+        if (inTag) {
+          if (m[1]) { // attribute
+            // setAttribute with uppercase names doesn't work on IE6.
+            var attribName = lcase(m[1]);
+            var decodedValue;
+            if (m[2]) {
+              var encodedValue = m[3];
+              switch (encodedValue.charCodeAt(0)) {  // Strip quotes
+                case 34: case 39:
+                  encodedValue = encodedValue.substring(
+                      1, encodedValue.length - 1);
+                  break;
+              }
+              decodedValue = unescapeEntities(stripNULs(encodedValue));
+            } else {
+              // Use name as value for valueless attribs, so
+              //   <input type=checkbox checked>
+              // gets attributes ['type', 'checkbox', 'checked', 'checked']
+              decodedValue = attribName;
+            }
+            attribs.push(attribName, decodedValue);
+          } else if (m[4]) {
+            if (eflags !== void 0) {  // False if not in whitelist.
+              if (openTag) {
+                if (handler.startTag) {
+                  handler.startTag(tagName, attribs, param);
+                }
+              } else {
+                if (handler.endTag) {
+                  handler.endTag(tagName, param);
+                }
+              }
+            }
+
+            if (openTag
+                && (eflags & (html4.eflags.CDATA | html4.eflags.RCDATA))) {
+              if (htmlLower === null) {
+                htmlLower = lcase(htmlText);
+              } else {
+                htmlLower = htmlLower.substring(
+                    htmlLower.length - htmlText.length);
+              }
+              var dataEnd = htmlLower.indexOf('</' + tagName);
+              if (dataEnd < 0) { dataEnd = htmlText.length; }
+              if (dataEnd) {
+                if (eflags & html4.eflags.CDATA) {
+                  if (handler.cdata) {
+                    handler.cdata(htmlText.substring(0, dataEnd), param);
+                  }
+                } else if (handler.rcdata) {
+                  handler.rcdata(
+                    normalizeRCData(htmlText.substring(0, dataEnd)), param);
+                }
+                htmlText = htmlText.substring(dataEnd);
+              }
+            }
+
+            tagName = eflags = openTag = void 0;
+            attribs.length = 0;
+            inTag = false;
+          }
+        } else {
+          if (m[1]) {  // Entity
+            if (handler.pcdata) { handler.pcdata(m[0], param); }
+          } else if (m[3]) {  // Tag
+            openTag = !m[2];
+            inTag = true;
+            tagName = lcase(m[3]);
+            eflags = html4.ELEMENTS.hasOwnProperty(tagName)
+                ? html4.ELEMENTS[tagName] : void 0;
+          } else if (m[4]) {  // Text
+            if (handler.pcdata) { handler.pcdata(m[4], param); }
+          } else if (m[5]) {  // Cruft
+            if (handler.pcdata) {
+              var ch = m[5];
+              handler.pcdata(
+                  ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : '&amp;',
+                  param);
+            }
+          }
+        }
+      }
+
+      if (handler.endDoc) { handler.endDoc(param); }
+    };
+  }
+
+  /**
+   * Returns a function that strips unsafe tags and attributes from html.
+   * @param {Function} sanitizeAttributes
+   *     maps from (tagName, attribs[]) to null or a sanitized attribute array.
+   *     The attribs array can be arbitrarily modified, but the same array
+   *     instance is reused, so should not be held.
+   * @return {Function} from html to sanitized html
+   */
+  function makeHtmlSanitizer(sanitizeAttributes) {
+    var stack;
+    var ignoring;
+    return makeSaxParser({
+        startDoc: function (_) {
+          stack = [];
+          ignoring = false;
+        },
+        startTag: function (tagName, attribs, out) {
+          if (ignoring) { return; }
+          if (!html4.ELEMENTS.hasOwnProperty(tagName)) { return; }
+          var eflags = html4.ELEMENTS[tagName];
+          if (eflags & html4.eflags.FOLDABLE) {
+            return;
+          } else if (eflags & html4.eflags.UNSAFE) {
+            ignoring = !(eflags & html4.eflags.EMPTY);
+            return;
+          }
+          attribs = sanitizeAttributes(tagName, attribs);
+          // TODO(mikesamuel): relying on sanitizeAttributes not to
+          // insert unsafe attribute names.
+          if (attribs) {
+            if (!(eflags & html4.eflags.EMPTY)) {
+              stack.push(tagName);
+            }
+
+            out.push('<', tagName);
+            for (var i = 0, n = attribs.length; i < n; i += 2) {
+              var attribName = attribs[i],
+                  value = attribs[i + 1];
+              if (value !== null && value !== void 0) {
+                out.push(' ', attribName, '="', escapeAttrib(value), '"');
+              }
+            }
+            out.push('>');
+          }
+        },
+        endTag: function (tagName, out) {
+          if (ignoring) {
+            ignoring = false;
+            return;
+          }
+          if (!html4.ELEMENTS.hasOwnProperty(tagName)) { return; }
+          var eflags = html4.ELEMENTS[tagName];
+          if (!(eflags & (html4.eflags.UNSAFE | html4.eflags.EMPTY
+                          | html4.eflags.FOLDABLE))) {
+            var index;
+            if (eflags & html4.eflags.OPTIONAL_ENDTAG) {
+              for (index = stack.length; --index >= 0;) {
+                var stackEl = stack[index];
+                if (stackEl === tagName) { break; }
+                if (!(html4.ELEMENTS[stackEl]
+                      & html4.eflags.OPTIONAL_ENDTAG)) {
+                  // Don't pop non optional end tags looking for a match.
+                  return;
+                }
+              }
+            } else {
+              for (index = stack.length; --index >= 0;) {
+                if (stack[index] === tagName) { break; }
+              }
+            }
+            if (index < 0) { return; }  // Not opened.
+            for (var i = stack.length; --i > index;) {
+              var stackEl = stack[i];
+              if (!(html4.ELEMENTS[stackEl]
+                    & html4.eflags.OPTIONAL_ENDTAG)) {
+                out.push('</', stackEl, '>');
+              }
+            }
+            stack.length = index;
+            out.push('</', tagName, '>');
+          }
+        },
+        pcdata: function (text, out) {
+          if (!ignoring) { out.push(text); }
+        },
+        rcdata: function (text, out) {
+          if (!ignoring) { out.push(text); }
+        },
+        cdata: function (text, out) {
+          if (!ignoring) { out.push(text); }
+        },
+        endDoc: function (out) {
+          for (var i = stack.length; --i >= 0;) {
+            out.push('</', stack[i], '>');
+          }
+          stack.length = 0;
+        }
+      });
+  }
+
+  // From RFC3986
+  var URI_SCHEME_RE = new RegExp(
+        "^" +
+      "(?:" +
+        "([^:\/?#]+)" +         // scheme
+      ":)?"
+      );
+
+  /**
+   * Strips unsafe tags and attributes from html.
+   * @param {string} htmlText to sanitize
+   * @param {Function} opt_uriPolicy -- a transform to apply to uri/url
+   *     attribute values.  If no opt_uriPolicy is provided, no uris
+   *     are allowed ie. the default uriPolicy rewrites all uris to null
+   * @param {Function} opt_nmTokenPolicy : string -> string? -- a transform to
+   *     apply to names, ids, and classes. If no opt_nmTokenPolicy is provided,
+   *     all names, ids and classes are passed through ie. the default
+   *     nmTokenPolicy is an identity transform
+   * @return {string} html
+   */
+  function sanitize(htmlText, opt_uriPolicy, opt_nmTokenPolicy) {
+    var out = [];
+    makeHtmlSanitizer(
+      function sanitizeAttribs(tagName, attribs) {
+        for (var i = 0; i < attribs.length; i += 2) {
+          var attribName = attribs[i];
+          var value = attribs[i + 1];
+          var atype = null, attribKey;
+          if ((attribKey = tagName + '::' + attribName,
+               html4.ATTRIBS.hasOwnProperty(attribKey))
+              || (attribKey = '*::' + attribName,
+                  html4.ATTRIBS.hasOwnProperty(attribKey))) {
+            atype = html4.ATTRIBS[attribKey];
+          }
+          if (atype !== null) {
+            switch (atype) {
+              case html4.atype.NONE: break;
+              case html4.atype.SCRIPT:
+              case html4.atype.STYLE:
+                value = null;
+                break;
+              case html4.atype.ID:
+              case html4.atype.IDREF:
+              case html4.atype.IDREFS:
+              case html4.atype.GLOBAL_NAME:
+              case html4.atype.LOCAL_NAME:
+              case html4.atype.CLASSES:
+                value = opt_nmTokenPolicy ? opt_nmTokenPolicy(value) : value;
+                break;
+              case html4.atype.URI:
+                var parsedUri = ('' + value).match(URI_SCHEME_RE);
+                if (!parsedUri) {
+                  value = null;
+                } else if (!parsedUri[1] ||
+                    WHITELISTED_SCHEMES.test(parsedUri[1])) {
+                  value = opt_uriPolicy && opt_uriPolicy(value);
+                } else {
+                  value = null;
+                }
+                break;
+              case html4.atype.URI_FRAGMENT:
+                if (value && '#' === value.charAt(0)) {
+                  value = opt_nmTokenPolicy ? opt_nmTokenPolicy(value) : value;
+                  if (value) { value = '#' + value; }
+                } else {
+                  value = null;
+                }
+                break;
+              default:
+                value = null;
+                break;
+            }
+          } else {
+            value = null;
+          }
+          attribs[i + 1] = value;
+        }
+        return attribs;
+      })(htmlText, out);
+    return out.join('');
+  }
+
+  return {
+    escapeAttrib: escapeAttrib,
+    makeHtmlSanitizer: makeHtmlSanitizer,
+    makeSaxParser: makeSaxParser,
+    normalizeRCData: normalizeRCData,
+    sanitize: sanitize,
+    unescapeEntities: unescapeEntities
+  };
+})(html4);
+
+var html_sanitize = html.sanitize;
+
+// Exports for closure compiler.  Note this file is also cajoled
+// for domado and run in an environment without 'window'
+if (typeof window !== 'undefined') {
+  window['html'] = html;
+  window['html_sanitize'] = html_sanitize;
+}
+// Loosen restrictions of Caja's
+// html-sanitizer to allow for styling
+html4.ATTRIBS['*::style'] = 0;
+html4.ELEMENTS['style'] = 0;
+/*
+  mustache.js — Logic-less templates in JavaScript
+
+  See http://mustache.github.com/ for more info.
+*/
+
+var Mustache = function() {
+  var regexCache = {};
+  var Renderer = function() {};
+
+  Renderer.prototype = {
+    otag: "{{",
+    ctag: "}}",
+    pragmas: {},
+    buffer: [],
+    pragmas_implemented: {
+      "IMPLICIT-ITERATOR": true
+    },
+    context: {},
+
+    render: function(template, context, partials, in_recursion) {
+      // reset buffer & set context
+      if(!in_recursion) {
+        this.context = context;
+        this.buffer = []; // TODO: make this non-lazy
+      }
+
+      // fail fast
+      if(!this.includes("", template)) {
+        if(in_recursion) {
+          return template;
+        } else {
+          this.send(template);
+          return;
+        }
+      }
+
+      // get the pragmas together
+      template = this.render_pragmas(template);
+
+      // render the template
+      var html = this.render_section(template, context, partials);
+
+      // render_section did not find any sections, we still need to render the tags
+      if (html === false) {
+        html = this.render_tags(template, context, partials, in_recursion);
+      }
+
+      if (in_recursion) {
+        return html;
+      } else {
+        this.sendLines(html);
+      }
+    },
+
+    /*
+      Sends parsed lines
+    */
+    send: function(line) {
+      if(line !== "") {
+        this.buffer.push(line);
+      }
+    },
+
+    sendLines: function(text) {
+      if (text) {
+        var lines = text.split("\n");
+        for (var i = 0; i < lines.length; i++) {
+          this.send(lines[i]);
+        }
+      }
+    },
+
+    /*
+      Looks for %PRAGMAS
+    */
+    render_pragmas: function(template) {
+      // no pragmas
+      if(!this.includes("%", template)) {
+        return template;
+      }
+
+      var that = this;
+      var regex = this.getCachedRegex("render_pragmas", function(otag, ctag) {
+        return new RegExp(otag + "%([\\w-]+) ?([\\w]+=[\\w]+)?" + ctag, "g");
+      });
+
+      return template.replace(regex, function(match, pragma, options) {
+        if(!that.pragmas_implemented[pragma]) {
+          throw({message:
+            "This implementation of mustache doesn't understand the '" +
+            pragma + "' pragma"});
+        }
+        that.pragmas[pragma] = {};
+        if(options) {
+          var opts = options.split("=");
+          that.pragmas[pragma][opts[0]] = opts[1];
+        }
+        return "";
+        // ignore unknown pragmas silently
+      });
+    },
+
+    /*
+      Tries to find a partial in the curent scope and render it
+    */
+    render_partial: function(name, context, partials) {
+      name = this.trim(name);
+      if(!partials || partials[name] === undefined) {
+        throw({message: "unknown_partial '" + name + "'"});
+      }
+      if(typeof(context[name]) != "object") {
+        return this.render(partials[name], context, partials, true);
+      }
+      return this.render(partials[name], context[name], partials, true);
+    },
+
+    /*
+      Renders inverted (^) and normal (#) sections
+    */
+    render_section: function(template, context, partials) {
+      if(!this.includes("#", template) && !this.includes("^", template)) {
+        // did not render anything, there were no sections
+        return false;
+      }
+
+      var that = this;
+
+      var regex = this.getCachedRegex("render_section", function(otag, ctag) {
+        // This regex matches _the first_ section ({{#foo}}{{/foo}}), and captures the remainder
+        return new RegExp(
+          "^([\\s\\S]*?)" +         // all the crap at the beginning that is not {{*}} ($1)
+
+          otag +                    // {{
+          "(\\^|\\#)\\s*(.+)\\s*" + //  #foo (# == $2, foo == $3)
+          ctag +                    // }}
+
+          "\n*([\\s\\S]*?)" +       // between the tag ($2). leading newlines are dropped
+
+          otag +                    // {{
+          "\\/\\s*\\3\\s*" +        //  /foo (backreference to the opening tag).
+          ctag +                    // }}
+
+          "\\s*([\\s\\S]*)$",       // everything else in the string ($4). leading whitespace is dropped.
+
+        "g");
+      });
+
+
+      // for each {{#foo}}{{/foo}} section do...
+      return template.replace(regex, function(match, before, type, name, content, after) {
+        // before contains only tags, no sections
+        var renderedBefore = before ? that.render_tags(before, context, partials, true) : "",
+
+        // after may contain both sections and tags, so use full rendering function
+            renderedAfter = after ? that.render(after, context, partials, true) : "",
+
+        // will be computed below
+            renderedContent,
+
+            value = that.find(name, context);
+
+        if (type === "^") { // inverted section
+          if (!value || that.is_array(value) && value.length === 0) {
+            // false or empty list, render it
+            renderedContent = that.render(content, context, partials, true);
+          } else {
+            renderedContent = "";
+          }
+        } else if (type === "#") { // normal section
+          if (that.is_array(value)) { // Enumerable, Let's loop!
+            renderedContent = that.map(value, function(row) {
+              return that.render(content, that.create_context(row), partials, true);
+            }).join("");
+          } else if (that.is_object(value)) { // Object, Use it as subcontext!
+            renderedContent = that.render(content, that.create_context(value),
+              partials, true);
+          } else if (typeof value === "function") {
+            // higher order section
+            renderedContent = value.call(context, content, function(text) {
+              return that.render(text, context, partials, true);
+            });
+          } else if (value) { // boolean section
+            renderedContent = that.render(content, context, partials, true);
+          } else {
+            renderedContent = "";
+          }
+        }
+
+        return renderedBefore + renderedContent + renderedAfter;
+      });
+    },
+
+    /*
+      Replace {{foo}} and friends with values from our view
+    */
+    render_tags: function(template, context, partials, in_recursion) {
+      // tit for tat
+      var that = this;
+
+
+
+      var new_regex = function() {
+        return that.getCachedRegex("render_tags", function(otag, ctag) {
+          return new RegExp(otag + "(=|!|>|\\{|%)?([^\\/#\\^]+?)\\1?" + ctag + "+", "g");
+        });
+      };
+
+      var regex = new_regex();
+      var tag_replace_callback = function(match, operator, name) {
+        switch(operator) {
+        case "!": // ignore comments
+          return "";
+        case "=": // set new delimiters, rebuild the replace regexp
+          that.set_delimiters(name);
+          regex = new_regex();
+          return "";
+        case ">": // render partial
+          return that.render_partial(name, context, partials);
+        case "{": // the triple mustache is unescaped
+          return that.find(name, context);
+        default: // escape the value
+          return that.escape(that.find(name, context));
+        }
+      };
+      var lines = template.split("\n");
+      for(var i = 0; i < lines.length; i++) {
+        lines[i] = lines[i].replace(regex, tag_replace_callback, this);
+        if(!in_recursion) {
+          this.send(lines[i]);
+        }
+      }
+
+      if(in_recursion) {
+        return lines.join("\n");
+      }
+    },
+
+    set_delimiters: function(delimiters) {
+      var dels = delimiters.split(" ");
+      this.otag = this.escape_regex(dels[0]);
+      this.ctag = this.escape_regex(dels[1]);
+    },
+
+    escape_regex: function(text) {
+      // thank you Simon Willison
+      if(!arguments.callee.sRE) {
+        var specials = [
+          '/', '.', '*', '+', '?', '|',
+          '(', ')', '[', ']', '{', '}', '\\'
+        ];
+        arguments.callee.sRE = new RegExp(
+          '(\\' + specials.join('|\\') + ')', 'g'
+        );
+      }
+      return text.replace(arguments.callee.sRE, '\\$1');
+    },
+
+    /*
+      find `name` in current `context`. That is find me a value
+      from the view object
+    */
+    find: function(name, context) {
+      name = this.trim(name);
+
+      // Checks whether a value is thruthy or false or 0
+      function is_kinda_truthy(bool) {
+        return bool === false || bool === 0 || bool;
+      }
+
+      var value;
+      if(is_kinda_truthy(context[name])) {
+        value = context[name];
+      } else if(is_kinda_truthy(this.context[name])) {
+        value = this.context[name];
+      }
+
+      if(typeof value === "function") {
+        return value.apply(context);
+      }
+      if(value !== undefined) {
+        return value;
+      }
+      // silently ignore unkown variables
+      return "";
+    },
+
+    // Utility methods
+
+    /* includes tag */
+    includes: function(needle, haystack) {
+      return haystack.indexOf(this.otag + needle) != -1;
+    },
+
+    /*
+      Does away with nasty characters
+    */
+    escape: function(s) {
+      s = String(s === null ? "" : s);
+      return s.replace(/&(?!\w+;)|["'<>\\]/g, function(s) {
+        switch(s) {
+        case "&": return "&amp;";
+        case '"': return '&quot;';
+        case "'": return '&#39;';
+        case "<": return "&lt;";
+        case ">": return "&gt;";
+        default: return s;
+        }
+      });
+    },
+
+    // by @langalex, support for arrays of strings
+    create_context: function(_context) {
+      if(this.is_object(_context)) {
+        return _context;
+      } else {
+        var iterator = ".";
+        if(this.pragmas["IMPLICIT-ITERATOR"]) {
+          iterator = this.pragmas["IMPLICIT-ITERATOR"].iterator;
+        }
+        var ctx = {};
+        ctx[iterator] = _context;
+        return ctx;
+      }
+    },
+
+    is_object: function(a) {
+      return a && typeof a == "object";
+    },
+
+    is_array: function(a) {
+      return Object.prototype.toString.call(a) === '[object Array]';
+    },
+
+    /*
+      Gets rid of leading and trailing whitespace
+    */
+    trim: function(s) {
+      return s.replace(/^\s*|\s*$/g, "");
+    },
+
+    /*
+      Why, why, why? Because IE. Cry, cry cry.
+    */
+    map: function(array, fn) {
+      if (typeof array.map == "function") {
+        return array.map(fn);
+      } else {
+        var r = [];
+        var l = array.length;
+        for(var i = 0; i < l; i++) {
+          r.push(fn(array[i]));
+        }
+        return r;
+      }
+    },
+
+    getCachedRegex: function(name, generator) {
+      var byOtag = regexCache[this.otag];
+      if (!byOtag) {
+        byOtag = regexCache[this.otag] = {};
+      }
+
+      var byCtag = byOtag[this.ctag];
+      if (!byCtag) {
+        byCtag = byOtag[this.ctag] = {};
+      }
+
+      var regex = byCtag[name];
+      if (!regex) {
+        regex = byCtag[name] = generator(this.otag, this.ctag);
+      }
+
+      return regex;
+    }
+  };
+
+  return({
+    name: "mustache.js",
+    version: "0.4.0-dev",
+
+    /*
+      Turns a template and view into HTML
+    */
+    to_html: function(template, view, partials, send_fun) {
+      var renderer = new Renderer();
+      if(send_fun) {
+        renderer.send = send_fun;
+      }
+      renderer.render(template, view || {}, partials);
+      if(!send_fun) {
+        return renderer.buffer.join("\n");
+      }
+    }
+  });
+}();
+;wax = wax || {};
 
 // Attribution
 // -----------
@@ -212,9 +1379,24 @@ wax.attribution = function() {
     var container,
         a = {};
 
+    function urlX(url) {
+        // Data URIs are subject to a bug in Firefox
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=255107
+        // which let them be a vector. But WebKit does 'the right thing'
+        // or at least 'something' about this situation, so we'll tolerate
+        // them.
+        if (/^(https?:\/\/|data:image)/.test(url)) {
+            return url;
+        }
+    }
+
+    function idX(id) {
+        return id;
+    }
+
     a.set = function(content) {
         if (typeof content === 'undefined') return;
-        container.innerHTML = content;
+        container.innerHTML = html_sanitize(content, urlX, idX);
         return this;
     };
 
@@ -298,6 +1480,9 @@ wax.bwdetect = function(options, callback) {
 };
 // Formatter
 // ---------
+//
+// This code is no longer the recommended code path for Wax -
+// see `template.js`, a safe implementation of Mustache templates.
 wax.formatter = function(x) {
     var formatter = {},
         f;
@@ -316,11 +1501,21 @@ wax.formatter = function(x) {
         f = function() {};
     }
 
+    function urlX(url) {
+        if (/^(https?:\/\/|data:image)/.test(url)) {
+            return url;
+        }
+    }
+
+    function idX(id) {
+        return id;
+    }
+
     // Wrap the given formatter function in order to
     // catch exceptions that it may throw.
     formatter.format = function(options, data) {
         try {
-            return f(options, data);
+            return html_sanitize(f(options, data), urlX, idX);
         } catch (e) {
             if (console) console.log(e);
         }
@@ -332,12 +1527,14 @@ wax.formatter = function(x) {
 // ------------
 // GridInstances are queryable, fully-formed
 // objects for acquiring features from events.
+//
+// This code ignores format of 1.1-1.2
 wax.GridInstance = function(grid_tile, formatter, options) {
     options = options || {};
     // resolution is the grid-elements-per-pixel ratio of gridded data.
     // The size of a tile element. For now we expect tiles to be squares.
     var instance = {},
-        resolution = options.resolution || 4;
+        resolution = options.resolution || 4,
         tileSize = options.tileSize || 256;
 
     // Resolve the UTF-8 encoding stored in grids to simple
@@ -374,10 +1571,13 @@ wax.GridInstance = function(grid_tile, formatter, options) {
     instance.gridFeature = function(x, y) {
         // Find the key in the grid. The above calls should ensure that
         // the grid's array is large enough to make this work.
-        var key = this.getKey(x, y);
+        var key = this.getKey(x, y),
+            keys = grid_tile.keys;
 
-        if (grid_tile.keys[key] && grid_tile.data[grid_tile.keys[key]]) {
-            return grid_tile.data[grid_tile.keys[key]];
+        if (keys &&
+            keys[key] &&
+            grid_tile.data[keys[key]]) {
+            return grid_tile.data[keys[key]];
         }
     };
 
@@ -388,6 +1588,7 @@ wax.GridInstance = function(grid_tile, formatter, options) {
     // * `options` options to give to the formatter: minimally having a `format`
     //   member, being `full`, `teaser`, or something else.
     instance.tileFeature = function(x, y, tile_element, options) {
+        if (!grid_tile) return;
         // IE problem here - though recoverable, for whatever reason
         var offset = wax.util.offset(tile_element);
             feature = this.gridFeature(x - offset.left, y - offset.top);
@@ -408,32 +1609,14 @@ wax.GridManager = function(options) {
     options = options || {};
 
     var resolution = options.resolution || 4,
+        version = options.version || '1.1',
         grid_tiles = {},
         manager = {},
         formatter;
 
-    var formatterUrl = function(url) {
-        return url.replace(/\d+\/\d+\/\d+\.\w+/, 'layer.json');
-    };
-
     var gridUrl = function(url) {
         return url.replace(/(\.png|\.jpg|\.jpeg)(\d*)/, '.grid.json');
     };
-
-    function getFormatter(url, callback) {
-        if (typeof formatter !== 'undefined') {
-            return callback(null, formatter);
-        } else {
-            wax.request.get(formatterUrl(url), function(err, data) {
-                if (data && data.formatter) {
-                    formatter = wax.formatter(data.formatter);
-                } else {
-                    formatter = false;
-                }
-                return callback(err, formatter);
-            });
-        }
-    }
 
     function templatedGridUrl(template) {
         if (typeof template === 'string') template = [template];
@@ -454,10 +1637,9 @@ wax.GridManager = function(options) {
         return manager;
     };
 
-    manager.formatterUrl = function(x) {
-        if (!arguments.length) return formatterUrl;
-        formatterUrl = typeof x === 'string' ?
-            function() { return x; } : x;
+    manager.template = function(x) {
+        if (!arguments.length) return formatter;
+        formatter = wax.template(x);
         return manager;
     };
 
@@ -468,25 +1650,99 @@ wax.GridManager = function(options) {
         return manager;
     };
 
-     manager.getGrid = function(url, callback) {
-        getFormatter(url, function(err, f) {
-            var gurl = gridUrl(url);
-            if (err || !f || !gurl) return callback(err, null);
+    manager.getGrid = function(url, callback) {
+        var gurl = gridUrl(url);
+        if (!formatter || !gurl) return callback(null, null);
 
-            wax.request.get(gurl, function(err, t) {
-                if (err) return callback(err, null);
-                callback(null, wax.GridInstance(t, f, {
-                    resolution: resolution || 4
-                }));
-            });
+        wax.request.get(gurl, function(err, t) {
+            if (err) return callback(err, null);
+            callback(null, wax.GridInstance(t, formatter, {
+                resolution: resolution || 4
+            }));
         });
         return manager;
     };
 
-    if (options.formatter) manager.formatter(options.formatter);
-    if (options.grids) manager.gridUrl(options.grids);
+    manager.add = function(options) {
+        if (options.template) {
+            manager.template(options.template);
+        } else if (options.formatter) {
+            manager.formatter(options.formatter);
+        }
 
-    return manager;
+        if (options.grids) {
+            manager.gridUrl(options.grids);
+        }
+        return this;
+    };
+
+    return manager.add(options);
+};
+wax = wax || {};
+
+// Hash
+// ----
+wax.hash = function(options) {
+    options = options || {};
+
+    function getState() {
+        return location.hash.substring(1);
+    }
+
+    function pushState(state) {
+        location.hash = '#' + state;
+    }
+
+    var s0, // old hash
+        hash = {},
+        lat = 90 - 1e-8;  // allowable latitude range
+
+    function parseHash(s) {
+        var args = s.split('/');
+        for (var i = 0; i < args.length; i++) {
+            args[i] = Number(args[i]);
+            if (isNaN(args[i])) return true;
+        }
+        if (args.length < 3) {
+            // replace bogus hash
+            return true;
+        } else if (args.length == 3) {
+            options.setCenterZoom(args);
+        }
+    }
+
+    function move() {
+        var s1 = options.getCenterZoom();
+        if (s0 !== s1) {
+            s0 = s1;
+            // don't recenter the map!
+            pushState(s0);
+        }
+    }
+
+    function stateChange(state) {
+        // ignore spurious hashchange events
+        if (state === s0) return;
+        if (parseHash(s0 = state)) {
+            // replace bogus hash
+            move();
+        }
+    }
+
+    var _move = wax.util.throttle(move, 500);
+
+    hash.add = function() {
+        stateChange(getState());
+        options.bindChange(_move);
+        return this;
+    };
+
+    hash.remove = function() {
+        options.unbindChange(_move);
+        return this;
+    };
+
+    return hash.add();
 };
 // Wax Legend
 // ----------
@@ -499,6 +1755,21 @@ wax.legend = function() {
         legend = {},
         container;
 
+    function urlX(url) {
+        // Data URIs are subject to a bug in Firefox
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=255107
+        // which let them be a vector. But WebKit does 'the right thing'
+        // or at least 'something' about this situation, so we'll tolerate
+        // them.
+        if (/^(https?:\/\/|data:image)/.test(url)) {
+            return url;
+        }
+    }
+
+    function idX(id) {
+        return id;
+    }
+
     legend.element = function() {
         return container;
     };
@@ -506,7 +1777,7 @@ wax.legend = function() {
     legend.content = function(content) {
         if (!arguments.length) return element.innerHTML;
         if (content) {
-            element.innerHTML = content;
+            element.innerHTML = html_sanitize(content, urlX, idX);
             element.style.display = 'block';
         } else {
             element.innerHTML = '';
@@ -546,6 +1817,155 @@ var w = function(self) {
     };
     return self;
 };
+var wax = wax || {};
+wax.movetip = {};
+
+wax.movetip = function(options) {
+    options = options || {};
+    var t = {},
+        _currentTooltip = undefined,
+        _context = undefined,
+        _animationOut = options.animationOut,
+        _animationIn = options.animationIn;
+
+    // Helper function to determine whether a given element is a wax popup.
+    function isPopup (el) {
+        return el && el.className.indexOf('wax-popup') !== -1;
+    }
+
+    function getTooltip(feature, context) {
+        var tooltip = document.createElement('div');
+        tooltip.className = 'wax-movetip';
+        tooltip.style.cssText = 'position:absolute;'
+        tooltip.innerHTML = feature;
+        context.appendChild(tooltip);
+        _context = context;
+        _tooltipOffset = wax.util.offset(tooltip);
+        _contextOffset = wax.util.offset(_context);
+        return tooltip;
+    }
+
+    function moveTooltip(e) {
+        if (!_currentTooltip) return;
+        var eo = wax.util.eventoffset(e);
+
+        _currentTooltip.className = 'wax-movetip';
+
+        // faux-positioning
+        if ((_tooltipOffset.height + eo.y) >
+            (_contextOffset.top + _contextOffset.height) &&
+            (_contextOffset.height > _tooltipOffset.height)) {
+            eo.y -= _tooltipOffset.height;
+            _currentTooltip.className += ' flip-y';
+        }
+
+        // faux-positioning
+        if ((_tooltipOffset.width + eo.x) >
+            (_contextOffset.left + _contextOffset.width)) {
+            eo.x -= _tooltipOffset.width;
+            _currentTooltip.className += ' flip-x';
+        }
+
+        _currentTooltip.style.left = eo.x + 'px';
+        _currentTooltip.style.top = eo.y + 'px';
+    }
+
+    // Hide a given tooltip.
+    function hideTooltip(el) {
+        if (!el) return;
+        var event,
+            remove = function() {
+            if (this.parentNode) this.parentNode.removeChild(this);
+        };
+
+        if (el.style['-webkit-transition'] !== undefined && _animationOut) {
+            event = 'webkitTransitionEnd';
+        } else if (el.style.MozTransition !== undefined && _animationOut) {
+            event = 'transitionend';
+        }
+
+        if (event) {
+            // This code assumes that transform-supporting browsers
+            // also support proper events. IE9 does both.
+            el.addEventListener(event, remove, false);
+            el.addEventListener('transitionend', remove, false);
+            el.className += ' ' + _animationOut;
+        } else {
+            if (el.parentNode) el.parentNode.removeChild(el);
+        }
+    }
+
+    // Expand a tooltip to be a "popup". Suspends all other tooltips from being
+    // shown until this popup is closed or another popup is opened.
+    function click(feature, context) {
+        // Hide any current tooltips.
+        if (_currentTooltip) {
+            hideTooltip(_currentTooltip);
+            _currentTooltip = undefined;
+        }
+
+        var tooltip = getTooltip(feature, context);
+        tooltip.className += ' wax-popup';
+        tooltip.innerHTML = feature;
+
+        var close = document.createElement('a');
+        close.href = '#close';
+        close.className = 'close';
+        close.innerHTML = 'Close';
+        tooltip.appendChild(close);
+
+        var closeClick = function(ev) {
+            hideTooltip(tooltip);
+            _currentTooltip = undefined;
+            ev.returnValue = false; // Prevents hash change.
+            if (ev.stopPropagation) ev.stopPropagation();
+            if (ev.preventDefault) ev.preventDefault();
+            return false;
+        };
+
+        // IE compatibility.
+        if (close.addEventListener) {
+            close.addEventListener('click', closeClick, false);
+        } else if (close.attachEvent) {
+            close.attachEvent('onclick', closeClick);
+        }
+
+        _currentTooltip = tooltip;
+    }
+
+    t.over = function(feature, context, e) {
+        if (!feature) return;
+        context.style.cursor = 'pointer';
+
+        if (isPopup(_currentTooltip)) {
+            return;
+        } else {
+            _currentTooltip = getTooltip(feature, context);
+            moveTooltip(e);
+            if (context.addEventListener) {
+                context.addEventListener('mousemove', moveTooltip);
+            }
+        }
+    };
+
+    // Hide all tooltips on this layer and show the first hidden tooltip on the
+    // highest layer underneath if found.
+    t.out = function(context) {
+        context.style.cursor = 'default';
+
+        if (isPopup(_currentTooltip)) {
+            return;
+        } else if (_currentTooltip) {
+            hideTooltip(_currentTooltip);
+            if (context.removeEventListener) {
+                context.removeEventListener('mousemove', moveTooltip);
+            }
+            _currentTooltip = undefined;
+        }
+    };
+
+    return t;
+};
 // Wax GridUtil
 // ------------
 
@@ -573,7 +1993,7 @@ wax.request = {
             var that = this;
             this.locks[url] = true;
             reqwest({
-                url: wax.util.addUrlData(url, 'callback=grid'),
+                url: url + (~url.indexOf('?') ? '&' : '?') + 'callback=grid',
                 type: 'jsonp',
                 jsonpCallback: 'callback',
                 success: function(data) {
@@ -594,12 +2014,47 @@ wax.request = {
         }
     }
 };
+// Templating
+// ---------
+wax.template = function(x) {
+    var template = {};
+
+    function urlX(url) {
+        // Data URIs are subject to a bug in Firefox
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=255107
+        // which let them be a vector. But WebKit does 'the right thing'
+        // or at least 'something' about this situation, so we'll tolerate
+        // them.
+        if (/^(https?:\/\/|data:image)/.test(url)) {
+            return url;
+        }
+    }
+
+    function idX(id) {
+        return id;
+    }
+
+    // Clone the data object such that the '__[format]__' key is only
+    // set for this instance of templating.
+    template.format = function(options, data) {
+        var clone = {};
+        for (var key in data) {
+            clone[key] = data[key];
+        }
+        if (options.format) {
+            clone['__' + options.format + '__'] = true;
+        }
+        return html_sanitize(Mustache.to_html(x, clone), urlX, idX);
+    };
+
+    return template;
+};
 if (!wax) var wax = {};
 
 // A wrapper for reqwest jsonp to easily load TileJSON from a URL.
 wax.tilejson = function(url, callback) {
     reqwest({
-        url: wax.util.addUrlData(url, 'callback=grid'),
+        url: url + (~url.indexOf('?') ? '&' : '?') + 'callback=grid',
         type: 'jsonp',
         jsonpCallback: 'callback',
         success: callback,
@@ -687,6 +2142,7 @@ wax.tooltip.prototype.click = function(feature, context) {
     // IE compatibility.
     if (close.addEventListener) {
         close.addEventListener('click', closeClick, false);
+        close.addEventListener('touchend', closeClick, false);
     } else if (close.attachEvent) {
         close.attachEvent('onclick', closeClick);
     }
@@ -704,7 +2160,6 @@ wax.tooltip.prototype.over = function(feature, context) {
     } else {
         this._currentTooltip = this.getTooltip(feature, context);
     }
-// $('.mainLegend').append(feature);
 };
 
 
@@ -719,8 +2174,6 @@ wax.tooltip.prototype.out = function(context) {
         this.hideTooltip(this._currentTooltip);
         this._currentTooltip = undefined;
     }
-// $('.mainLegend >.mainToolTip').empty();
-
 };
 var wax = wax || {};
 wax.util = wax.util || {};
@@ -736,11 +2189,12 @@ wax.util = {
         // by Firefox.
         var width = el.offsetWidth || parseInt(el.style.width, 10),
             height = el.offsetHeight || parseInt(el.style.height, 10),
+            doc_body = document.body,
             top = 0,
             left = 0;
 
         var calculateOffset = function(el) {
-            if (el === document.body || el === document.documentElement) return;
+            if (el === doc_body || el === document.documentElement) return;
             top += el.offsetTop;
             left += el.offsetLeft;
 
@@ -777,18 +2231,18 @@ wax.util = {
         }
 
         // Offsets from the body
-        top += document.body.offsetTop;
-        left += document.body.offsetLeft;
+        top += doc_body.offsetTop;
+        left += doc_body.offsetLeft;
         // Offsets from the HTML element
-        top += document.body.parentNode.offsetTop;
-        left += document.body.parentNode.offsetLeft;
+        top += doc_body.parentNode.offsetTop;
+        left += doc_body.parentNode.offsetLeft;
 
         // Firefox and other weirdos. Similar technique to jQuery's
         // `doesNotIncludeMarginInBodyOffset`.
         var htmlComputed = document.defaultView ?
-            window.getComputedStyle(document.body.parentNode, null) :
-            document.body.parentNode.currentStyle;
-        if (document.body.parentNode.offsetTop !==
+            window.getComputedStyle(doc_body.parentNode, null) :
+            doc_body.parentNode.currentStyle;
+        if (doc_body.parentNode.offsetTop !==
             parseInt(htmlComputed.marginTop, 10) &&
             !isNaN(parseInt(htmlComputed.marginTop, 10))) {
             top += parseInt(htmlComputed.marginTop, 10);
@@ -875,37 +2329,26 @@ wax.util = {
             };
         }
     },
-    // parseUri 1.2.2
-    // Steven Levithan <stevenlevithan.com>
-    parseUri: function(str) {
-        var o = {
-            strictMode: false,
-            key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
-            q:   {
-                name:   "queryKey",
-                parser: /(?:^|&)([^&=]*)=?([^&]*)/g
-            },
-            parser: {
-                strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-                loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-            }
-        },
-            m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
-            uri = {},
-            i   = 14;
 
-        while (i--) uri[o.key[i]] = m[i] || "";
-
-        uri[o.q.name] = {};
-        uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-            if ($1) uri[o.q.name][$1] = $2;
-        });
-        return uri;
+    // Ripped from underscore.js
+    // Internal function used to implement `_.throttle` and `_.debounce`.
+    limit: function(func, wait, debounce) {
+        var timeout;
+        return function() {
+            var context = this, args = arguments;
+            var throttler = function() {
+                timeout = null;
+                func.apply(context, args);
+            };
+            if (debounce) clearTimeout(timeout);
+            if (debounce || !timeout) timeout = setTimeout(throttler, wait);
+        };
     },
-    // appends callback onto urls regardless of existing query params
-    addUrlData: function(url, data) {
-        url += (this.parseUri(url).query) ? '&' : '?';
-        return url += data;
+
+    // Returns a function, that, when invoked, will only be triggered at most once
+    // during a given window of time.
+    throttle: function(func, wait) {
+        return this.limit(func, wait, false);
     }
 };
 wax = wax || {};
@@ -944,11 +2387,12 @@ wax.mm = wax.mm || {};
 // ------------
 wax.mm.boxselector = function(map, tilejson, opts) {
     var mouseDownPoint = null,
-        MM = com.modestmaps,
         callback = ((typeof opts === 'function') ?
             opts :
             opts.callback),
         boxDiv,
+        addEvent = MM.addEvent,
+        removeEvent = MM.removeEvent,
         box,
         boxselector = {};
 
@@ -975,8 +2419,8 @@ wax.mm.boxselector = function(map, tilejson, opts) {
         boxDiv.style.left = mouseDownPoint.x + 'px';
         boxDiv.style.top = mouseDownPoint.y + 'px';
 
-        MM.addEvent(map.parent, 'mousemove', mouseMove);
-        MM.addEvent(map.parent, 'mouseup', mouseUp);
+        addEvent(map.parent, 'mousemove', mouseMove);
+        addEvent(map.parent, 'mouseup', mouseUp);
 
         map.parent.style.cursor = 'crosshair';
         return MM.cancelEvent(e);
@@ -984,20 +2428,21 @@ wax.mm.boxselector = function(map, tilejson, opts) {
 
 
     function mouseMove(e) {
-        var point = getMousePoint(e);
-        boxDiv.style.display = 'block';
+        var point = getMousePoint(e),
+            style = boxDiv.style;
+        style.display = 'block';
         if (point.x < mouseDownPoint.x) {
-            boxDiv.style.left = point.x + 'px';
+            style.left = point.x + 'px';
         } else {
-            boxDiv.style.left = mouseDownPoint.x + 'px';
+            style.left = mouseDownPoint.x + 'px';
         }
         if (point.y < mouseDownPoint.y) {
-            boxDiv.style.top = point.y + 'px';
+            style.top = point.y + 'px';
         } else {
-            boxDiv.style.top = mouseDownPoint.y + 'px';
+            style.top = mouseDownPoint.y + 'px';
         }
-        boxDiv.style.width = Math.abs(point.x - mouseDownPoint.x) + 'px';
-        boxDiv.style.height = Math.abs(point.y - mouseDownPoint.y) + 'px';
+        style.width = Math.abs(point.x - mouseDownPoint.x) + 'px';
+        style.height = Math.abs(point.y - mouseDownPoint.y) + 'px';
         return MM.cancelEvent(e);
     }
 
@@ -1016,8 +2461,8 @@ wax.mm.boxselector = function(map, tilejson, opts) {
                 Math.max(l1.lon, l2.lon))
         ]);
 
-        MM.removeEvent(map.parent, 'mousemove', mouseMove);
-        MM.removeEvent(map.parent, 'mouseup', mouseUp);
+        removeEvent(map.parent, 'mousemove', mouseMove);
+        removeEvent(map.parent, 'mouseup', mouseUp);
 
         map.parent.style.cursor = 'auto';
     }
@@ -1025,15 +2470,16 @@ wax.mm.boxselector = function(map, tilejson, opts) {
     function drawbox(map, e) {
         if (!boxDiv || !box) return;
         var br = map.locationPoint(box[1]),
-            tl = map.locationPoint(box[0]);
+            tl = map.locationPoint(box[0]),
+            style = boxDiv.style;
 
-        boxDiv.style.display = 'block';
-        boxDiv.style.height = 'auto';
-        boxDiv.style.width = 'auto';
-        boxDiv.style.left = Math.max(0, tl.x) + 'px';
-        boxDiv.style.top = Math.max(0, tl.y) + 'px';
-        boxDiv.style.right = Math.max(0, map.dimensions.x - br.x) + 'px';
-        boxDiv.style.bottom = Math.max(0, map.dimensions.y - br.y) + 'px';
+        style.display = 'block';
+        style.height = 'auto';
+        style.width = 'auto';
+        style.left = Math.max(0, tl.x) + 'px';
+        style.top = Math.max(0, tl.y) + 'px';
+        style.right = Math.max(0, map.dimensions.x - br.x) + 'px';
+        style.bottom = Math.max(0, map.dimensions.y - br.y) + 'px';
     }
 
     boxselector.extent = function(x, silent) {
@@ -1059,14 +2505,14 @@ wax.mm.boxselector = function(map, tilejson, opts) {
         boxDiv.className = 'boxselector-box';
         map.parent.appendChild(boxDiv);
 
-        MM.addEvent(map.parent, 'mousedown', mouseDown);
+        addEvent(map.parent, 'mousedown', mouseDown);
         map.addCallback('drawn', drawbox);
         return this;
     };
 
     boxselector.remove = function() {
         map.parent.removeChild(boxDiv);
-        MM.removeEvent(map.parent, 'mousedown', mouseDown);
+        removeEvent(map.parent, 'mousedown', mouseDown);
         map.removeCallback('drawn', drawbox);
     };
 
@@ -1081,12 +2527,11 @@ wax.mm.bwdetect = function(map, options) {
     options = options || {};
     var lowpng = options.png || '.png128',
         lowjpg = options.jpg || '.jpg70',
-        mm = com.modestmaps,
         bw = 1;
 
     function setProvider(x) {
         // More or less detect the Wax version
-        if (!(x.options && x.options.scheme)) mm.Map.prototype.setProvider.call(map, x);
+        if (!(x.options && x.options.scheme)) MM.Map.prototype.setProvider.call(map, x);
         var swap = [['.png', '.jpg'], [lowpng, lowjpg]];
         if (bw) swap.reverse();
         for (var i = 0; i < x.options.tiles.length; i++) {
@@ -1094,7 +2539,7 @@ wax.mm.bwdetect = function(map, options) {
                 .replace(swap[0][0], swap[1][0])
                 .replace(swap[0][1], swap[1][1]);
         }
-        mm.Map.prototype.setProvider.call(map, x);
+        MM.Map.prototype.setProvider.call(map, x);
     }
 
     map.setProvider = setProvider;
@@ -1120,10 +2565,11 @@ wax.mm.fullscreen = function(map) {
     var state = false,
         fullscreen = {},
         a,
+        body = document.body,
         smallSize;
 
     function click(e) {
-        if (e) com.modestmaps.cancelEvent(e);
+        if (e) MM.cancelEvent(e);
         if (state) {
             fullscreen.original();
         } else {
@@ -1139,20 +2585,22 @@ wax.mm.fullscreen = function(map) {
         a.className = 'wax-fullscreen';
         a.href = '#fullscreen';
         a.innerHTML = 'fullscreen';
-        com.modestmaps.addEvent(a, 'click', click);
+        MM.addEvent(a, 'click', click);
         return this;
     };
     fullscreen.full = function() {
         if (state) { return; } else { state = true; }
         smallSize = [map.parent.offsetWidth, map.parent.offsetHeight];
         map.parent.className += ' wax-fullscreen-map';
+        body.className += ' wax-fullscreen-view';
         map.setSize(
             map.parent.offsetWidth,
             map.parent.offsetHeight);
     };
     fullscreen.original = function() {
         if (!state) { return; } else { state = false; }
-        map.parent.className = map.parent.className.replace('wax-fullscreen-map', '');
+        map.parent.className = map.parent.className.replace(' wax-fullscreen-map', '');
+        body.className = body.className.replace(' wax-fullscreen-view', '');
         map.setSize(
             smallSize[0],
             smallSize[1]);
@@ -1167,139 +2615,32 @@ wax.mm.fullscreen = function(map) {
 wax = wax || {};
 wax.mm = wax.mm || {};
 
-// A basic manager dealing only in hashchange and `location.hash`.
-// This **will interfere** with anchors, so a HTML5 pushState
-// implementation will be preferred.
-wax.mm.locationHash = {
-  stateChange: function(callback) {
-    com.modestmaps.addEvent(window, 'hashchange', function() {
-      callback(location.hash.substring(1));
-    }, false);
-  },
-  getState: function() {
-    return location.hash.substring(1);
-  },
-  pushState: function(state) {
-    location.hash = '#' + state;
-  }
-};
+wax.mm.hash = function(map) {
+    return wax.hash({
+        getCenterZoom: function() {
+            var center = map.getCenter(),
+                zoom = map.getZoom(),
+                precision = Math.max(
+                    0,
+                    Math.ceil(Math.log(zoom) / Math.LN2));
 
-// a HTML5 pushstate-based hash changer.
-//
-// This **does not degrade** with non-supporting browsers - it simply
-// does nothing.
-wax.mm.pushState = {
-    stateChange: function(callback) {
-        com.modestmaps.addEvent(window, 'popstate', function(e) {
-            if (e.state && e.state.map_location) {
-                callback(e.state.map_location);
-            }
-        }, false);
-    },
-    getState: function() {
-       if (!(window.history && window.history.state)) return;
-       return history.state && history.state.map_location;
-    },
-    // Push states - so each substantial movement of the map
-    // is a history object.
-    pushState: function(state) {
-        if (!(window.history && window.history.pushState)) return;
-        window.history.pushState({ map_location: state }, document.title, window.location.href);
-    }
-};
-
-// Hash
-// ----
-wax.mm.hash = function(map, tilejson, options) {
-    options = options || {};
-
-    var s0,
-        hash = {},
-        // allowable latitude range
-        lat = 90 - 1e-8;
-
-    options.manager = options.manager || wax.mm.pushState;
-
-    // Ripped from underscore.js
-    // Internal function used to implement `_.throttle` and `_.debounce`.
-    function limit(func, wait, debounce) {
-        var timeout;
-          return function() {
-              var context = this, args = arguments;
-              var throttler = function() {
-                  timeout = null;
-                  func.apply(context, args);
-              };
-              if (debounce) clearTimeout(timeout);
-              if (debounce || !timeout) timeout = setTimeout(throttler, wait);
-          };
-    }
-
-    // Returns a function, that, when invoked, will only be triggered at most once
-    // during a given window of time.
-    function throttle(func, wait) {
-        return limit(func, wait, false);
-    }
-
-    var parser = function(s) {
-        var args = s.split('/');
-        for (var i = 0; i < args.length; i++) {
-            args[i] = Number(args[i]);
-            if (isNaN(args[i])) return true;
+            return [zoom.toFixed(2),
+                center.lat.toFixed(precision),
+                center.lon.toFixed(precision)
+            ].join('/');
+        },
+        setCenterZoom: function setCenterZoom(args) {
+            map.setCenterZoom(
+                new MM.Location(args[1], args[2]),
+                args[0]);
+        },
+        bindChange: function(fn) {
+            map.addCallback('drawn', fn);
+        },
+        unbindChange: function(fn) {
+            map.removeCallback('drawn', fn);
         }
-        if (args.length < 3) {
-            // replace bogus hash
-            return true;
-        } else if (args.length == 3) {
-            map.setCenterZoom(new com.modestmaps.Location(args[1], args[2]), args[0]);
-        }
-    };
-
-    var formatter = function() {
-        var center = map.getCenter(),
-            zoom = map.getZoom(),
-            precision = Math.max(0, Math.ceil(Math.log(zoom) / Math.LN2));
-        return [zoom.toFixed(2),
-          center.lat.toFixed(precision),
-          center.lon.toFixed(precision)].join('/');
-    };
-
-    function move() {
-        var s1 = formatter();
-        if (s0 !== s1) {
-            s0 = s1;
-            // don't recenter the map!
-            options.manager.pushState(s0);
-        }
-    }
-
-    function stateChange(state) {
-        // ignore spurious hashchange events
-        if (state === s0) return;
-        if (parser(s0 = state)) {
-            // replace bogus hash
-            move();
-        }
-    }
-
-    var initialize = function() {
-        if (options.defaultCenter) map.setCenter(options.defaultCenter);
-        if (options.defaultZoom) map.setZoom(options.defaultZoom);
-    };
-
-    hash.add = function(map) {
-        if (options.manager.getState()) {
-            stateChange(options.manager.getState());
-        } else {
-            initialize();
-            move();
-        }
-        map.addCallback('drawn', throttle(move, 500));
-        options.manager.stateChange(stateChange);
-        return this;
-    };
-
-    return hash.add(map);
+    });
 };
 wax = wax || {};
 wax.mm = wax.mm || {};
@@ -1324,13 +2665,15 @@ wax.mm.interaction = function(map, tilejson, options) {
     options = options || {};
     tilejson = tilejson || {};
 
-    var MM = com.modestmaps,
-        waxGM = wax.GridManager(tilejson),
+    var waxGM = wax.GridManager(tilejson),
         callbacks = options.callbacks || new wax.tooltip(options),
         clickAction = options.clickAction || ['full', 'location'],
         clickHandler = options.clickHandler || function(url) {
-            window.location = url;
+            window.top.location = url;
         },
+        eventoffset = wax.util.eventoffset,
+        addEvent = MM.addEvent,
+        removeEvent = MM.removeEvent,
         interaction = {},
         _downLock = false,
         _clickTimeout = false,
@@ -1341,7 +2684,9 @@ wax.mm.interaction = function(map, tilejson, options) {
         _d,
         // Touch tolerance
         tol = 4,
-        tileGrid;
+        tileGrid,
+        clearingEvents = ['zoomed', 'panned', 'centered',
+            'extentset', 'resized', 'drawn'];
 
     // Search through `.tiles` and determine the position,
     // from the top-left of the **document**, and cache that data
@@ -1349,7 +2694,7 @@ wax.mm.interaction = function(map, tilejson, options) {
     function getTileGrid() {
         // TODO: don't build for tiles outside of viewport
         // Touch interaction leads to intermediate
-        var zoomLayer = map.createOrGetLayer(Math.round(map.getZoom()));
+        var zoomLayer = map.getLayerAt(0).levels[Math.round(map.getZoom())];
         // Calculate a tile grid and cache it, by using the `.tiles`
         // element on this map.
         return tileGrid || (tileGrid =
@@ -1362,7 +2707,7 @@ wax.mm.interaction = function(map, tilejson, options) {
                     }
                 }
                 return o;
-            })(map.tiles));
+            })(map.getLayerAt(0).tiles));
     }
 
     // When the map moves, the tile grid is no longer valid.
@@ -1396,8 +2741,10 @@ wax.mm.interaction = function(map, tilejson, options) {
         // If the user is actually dragging the map, exit early
         // to avoid performance hits.
         if (_downLock) return;
+        var t = e.target || e.srcElement;
+        if (t.className !== 'map-tile-loaded') return;
 
-        var pos = wax.util.eventoffset(e),
+        var pos = eventoffset(e),
             tile = getTile(pos),
             feature;
 
@@ -1410,7 +2757,7 @@ wax.mm.interaction = function(map, tilejson, options) {
                 if (feature && _af !== feature) {
                     _af = feature;
                     callbacks.out(map.parent);
-                    callbacks.over(feature, map.parent);
+                    callbacks.over(feature, map.parent, e);
                 } else if (!feature) {
                     _af = null;
                     callbacks.out(map.parent);
@@ -1424,6 +2771,7 @@ wax.mm.interaction = function(map, tilejson, options) {
 
     // A handler for 'down' events - which means `mousedown` and `touchstart`
     function onDown(e) {
+        if (e.target.className !== 'map-tile-loaded') return;
         // Ignore double-clicks by ignoring clicks within 300ms of
         // each other.
         if (killTimeout()) { return; }
@@ -1434,9 +2782,9 @@ wax.mm.interaction = function(map, tilejson, options) {
         // Store this event so that we can compare it to the
         // up event
         _downLock = true;
-        _d = wax.util.eventoffset(e);
+        _d = eventoffset(e);
         if (e.type === 'mousedown') {
-            MM.addEvent(document.body, 'mouseup', onUp);
+            addEvent(document.body, 'mouseup', onUp);
 
         // Only track single-touches. Double-touches will not affect this
         // control
@@ -1451,26 +2799,34 @@ wax.mm.interaction = function(map, tilejson, options) {
             }
 
             // Touch moves invalidate touches
-            MM.addEvent(map.parent, 'touchend', onUp);
-            MM.addEvent(map.parent, 'touchmove', touchCancel);
+            addEvent(map.parent, 'touchend', onUp);
+            addEvent(map.parent, 'touchmove', touchCancel);
+            addEvent(map.parent, 'touchcancel', touchCancel);
         }
     }
 
     function touchCancel() {
-        MM.removeEvent(map.parent, 'touchend', onUp);
-        MM.removeEvent(map.parent, 'touchmove', onUp);
+        removeEvent(map.parent, 'touchend', onUp);
+        removeEvent(map.parent, 'touchmove', onUp);
+        removeEvent(map.parent, 'touchcancel', touchCancel);
         _downLock = false;
     }
 
     function onUp(e) {
-        var pos = wax.util.eventoffset(e);
+        var evt = {},
+            pos = eventoffset(e);
         _downLock = false;
 
-        MM.removeEvent(document.body, 'mouseup', onUp);
+        for (var key in e) {
+          evt[key] = e[key];
+        }
 
-        if (map.parent.ontouchend) {
-            MM.removeEvent(map.parent, 'touchend', onUp);
-            MM.removeEvent(map.parent, 'touchmove', _touchCancel);
+        removeEvent(document.body, 'mouseup', onUp);
+
+        if (touchable) {
+            removeEvent(map.parent, 'touchend', onUp);
+            removeEvent(map.parent, 'touchmove', touchCancel);
+            removeEvent(map.parent, 'touchcancel', touchCancel);
         }
 
         if (e.type === 'touchend') {
@@ -1482,7 +2838,7 @@ wax.mm.interaction = function(map, tilejson, options) {
             _clickTimeout = window.setTimeout(
                 function() {
                     _clickTimeout = null;
-                    click(e, pos);
+                    click(evt, pos);
                 }, 300);
         }
         return onUp;
@@ -1494,7 +2850,7 @@ wax.mm.interaction = function(map, tilejson, options) {
             feature;
 
         if (tile) waxGM.getGrid(tile.src, function(err, g) {
-            for (var i = 0; g && i < clickAction.length; i++) {
+            for (var i = 0; g && (i < clickAction.length); i++) {
                 feature = g.tileFeature(pos.x, pos.y, tile, {
                     format: clickAction[i]
                 });
@@ -1503,7 +2859,7 @@ wax.mm.interaction = function(map, tilejson, options) {
                         case 'full':
                         // clickAction can be teaser in touch interaction
                         case 'teaser':
-                            return callbacks.click(feature, map.parent, 0, e);
+                            return callbacks.click(feature, map.parent, e);
                         case 'location':
                             return clickHandler(feature);
                     }
@@ -1514,30 +2870,26 @@ wax.mm.interaction = function(map, tilejson, options) {
 
     // Attach listeners to the map
     interaction.add = function() {
-        var l = ['zoomed', 'panned', 'centered',
-            'extentset', 'resized', 'drawn'];
-        for (var i = 0; i < l.length; i++) {
-            map.addCallback(l[i], clearTileGrid);
+        for (var i = 0; i < clearingEvents.length; i++) {
+            map.addCallback(clearingEvents[i], clearTileGrid);
         }
-        MM.addEvent(map.parent, 'mousemove', onMove);
-        MM.addEvent(map.parent, 'mousedown', onDown);
+        addEvent(map.parent, 'mousemove', onMove);
+        addEvent(map.parent, 'mousedown', onDown);
         if (touchable) {
-            MM.addEvent(map.parent, 'touchstart', onDown);
+            addEvent(map.parent, 'touchstart', onDown);
         }
         return this;
     };
 
     // Remove this control from the map.
     interaction.remove = function() {
-        var l = ['zoomed', 'panned', 'centered',
-            'extentset', 'resized', 'drawn'];
-        for (var i = 0; i < l.length; i++) {
-            map.removeCallback(l[i], clearTileGrid);
+        for (var i = 0; i < clearingEvents.length; i++) {
+            map.removeCallback(clearingEvents[i], clearTileGrid);
         }
-        MM.removeEvent(map.parent, 'mousemove', onMove);
-        MM.removeEvent(map.parent, 'mousedown', onDown);
+        removeEvent(map.parent, 'mousemove', onMove);
+        removeEvent(map.parent, 'mousedown', onDown);
         if (touchable) {
-            MM.removeEvent(map.parent, 'touchstart', onDown);
+            removeEvent(map.parent, 'touchstart', onDown);
         }
         if (callbacks._currentTooltip) {
             callbacks.hideTooltip(callbacks._currentTooltip);
@@ -1547,6 +2899,79 @@ wax.mm.interaction = function(map, tilejson, options) {
 
     // Ensure chainability
     return interaction.add(map);
+};
+wax = wax || {};
+wax.mm = wax.mm || {};
+
+// LatLng
+// ------
+// Show the current cursor position in
+// lat/long
+wax.mm.latlngtooltip = function(map) {
+    var tt, // tooltip
+        _down = false,
+        latlng = {};
+
+    function getMousePoint(e) {
+        // start with just the mouse (x, y)
+        var point = new MM.Point(e.clientX, e.clientY);
+        // correct for scrolled document
+        point.x += document.body.scrollLeft + document.documentElement.scrollLeft;
+        point.y += document.body.scrollTop + document.documentElement.scrollTop;
+
+        // correct for nested offsets in DOM
+        for (var node = map.parent; node; node = node.offsetParent) {
+            point.x -= node.offsetLeft;
+            point.y -= node.offsetTop;
+        }
+        return point;
+    }
+
+    function onDown(e) {
+        console.log('here');
+        _down = true;
+    }
+
+    function onUp(e) {
+        _down = false;
+    }
+
+    function onMove(e) {
+        if (!e.shiftKey || _down) {
+            if (tt.parentNode === map.parent) {
+                map.parent.removeChild(tt);
+            }
+            return;
+        }
+
+        var pt = getMousePoint(e),
+            ll = map.pointLocation(pt),
+            fmt = ll.lat.toFixed(2) + ', ' + ll.lon.toFixed(2);
+
+        tt.innerHTML = fmt;
+        pt.scale = pt.width = pt.height = 1;
+        pt.x += 10;
+        MM.moveElement(tt, pt);
+        map.parent.appendChild(tt);
+    }
+
+    latlng.add = function() {
+        MM.addEvent(map.parent, 'mousemove', onMove);
+        MM.addEvent(map.parent, 'mousedown', onDown);
+        MM.addEvent(map.parent, 'mouseup', onUp);
+        tt = document.createElement('div');
+        tt.className = 'wax-latlngtooltip';
+        return this;
+    };
+
+    latlng.remove = function() {
+        MM.removeEvent(map.parent, 'mousemove', onMove);
+        MM.removeEvent(map.parent, 'mousedown', onDown);
+        MM.removeEvent(map.parent, 'mouseup', onUp);
+        return this;
+    };
+
+    return latlng.add();
 };
 wax = wax || {};
 wax.mm = wax.mm || {};
@@ -1590,11 +3015,13 @@ wax.mm = wax.mm || {};
 wax.mm.mobile = function(map, tilejson, opts) {
     opts = opts || {};
     // Inspired by Leaflet
-    var mm = com.modestmaps,
-        ua = navigator.userAgent.toLowerCase(),
-        isWebkit = ua.indexOf("webkit") != -1,
-        isMobile = ua.indexOf("mobile") != -1,
+    var ua = navigator.userAgent.toLowerCase(),
+        isWebkit = ua.indexOf('webkit') != -1,
+        isMobile = ua.indexOf('mobile') != -1,
         mobileWebkit = isMobile && isWebkit;
+
+    // FIXME: testing
+    // mobileWebkit = true;
 
     var defaultOverlayDraw = function(div) {
         var canvas = document.createElement('canvas');
@@ -1603,30 +3030,50 @@ wax.mm.mobile = function(map, tilejson, opts) {
             w2 = width / 2,
             h2 = height / 2,
             // Make the size of the arrow nicely proportional to the map
-            size = Math.min(width, height) / 4;
+            size = Math.min(width, height) / 4,
+            ctx = canvas.getContext('2d');
 
-        var ctx = canvas.getContext('2d');
         canvas.setAttribute('width', width);
         canvas.setAttribute('height', height);
-        ctx.globalAlpha = 0.5;
+        ctx.globalAlpha = 0.7;
         // Draw a nice gradient to signal that the map is inaccessible
         var inactive = ctx.createLinearGradient(0, 0, 300, 225);
-        inactive.addColorStop(0, "black");
-        inactive.addColorStop(1, "rgb(200, 200, 200)");
+        inactive.addColorStop(0, 'black');
+        inactive.addColorStop(1, 'rgb(144, 144, 144)');
         ctx.fillStyle = inactive;
         ctx.fillRect(0, 0, width, height);
 
-        ctx.fillStyle = "rgb(255, 255, 255)";
         ctx.beginPath();
-        ctx.moveTo(w2 - size * 0.6, h2 - size); // give the (x,y) coordinates
-        ctx.lineTo(w2 - size * 0.6, h2 + size);
-        ctx.lineTo(w2 + size * 0.6, h2);
+        ctx.arc(
+            w2 - size * 0.3,
+            h2,
+            size * 1.3,
+            size * 1.3,
+            Math.PI * 2,
+            true);
+        ctx.closePath();
+        ctx.fillStyle = 'rgb(100, 100, 100)';
+        ctx.fill();
+
+        ctx.fillStyle = 'rgb(255, 255, 255)';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(w2 - size * 0.8, h2 - size); // give the (x,y) coordinates
+        ctx.lineTo(w2 - size * 0.8, h2 + size);
+        ctx.lineTo(w2 + size * 0.8, h2);
         ctx.fill();
 
         // Done! Now fill the shape, and draw the stroke.
         // Note: your shape will not be visible until you call any of the two methods.
         div.appendChild(canvas);
     };
+
+    function getDeviceScale() {
+        return ((Math.abs(window.orientation) == 90) ?
+            Math.max(480, screen.height) :
+            screen.width) /
+            window.innerWidth;
+    }
 
     var defaultBackDraw = function(div) {
         div.style.position = 'absolute';
@@ -1640,11 +3087,11 @@ wax.mm.mobile = function(map, tilejson, opts) {
 
         var ctx = canvas.getContext('2d');
         ctx.globalAlpha = 1;
-        ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
         ctx.fillRect(0, 0, div.offsetWidth, div.offsetHeight);
-        ctx.fillStyle = "rgb(0, 0, 0)";
-        ctx.font = "bold 20px sans-serif";
-        ctx.fillText("back", 20, 30);
+        ctx.fillStyle = 'rgb(0, 0, 0)';
+        ctx.font = 'bold 20px sans-serif';
+        ctx.fillText('back', 20, 30);
         div.appendChild(canvas);
     };
 
@@ -1670,6 +3117,7 @@ wax.mm.mobile = function(map, tilejson, opts) {
         oldBody,
         standIn,
         meta,
+        oldscale,
         overlayDraw = opts.overlayDraw || defaultOverlayDraw,
         backDraw = opts.backDraw || defaultBackDraw;
         bodyDraw = opts.bodyDraw || function() {};
@@ -1700,23 +3148,28 @@ wax.mm.mobile = function(map, tilejson, opts) {
                 newBody.className = 'wax-mobile-body';
                 newBody.appendChild(backDiv);
 
-                mm.addEvent(overlayDiv, 'touchstart', this.toTouch);
-                mm.addEvent(backDiv, 'touchstart', this.toPage);
+                MM.addEvent(overlayDiv, 'touchstart', this.toTouch);
+                MM.addEvent(backDiv, 'touchstart', this.toPage);
+
             }
             return this;
         },
-        // Enter "touch mode"
+        // Enter 'touch mode'
         toTouch: function() {
             // Enter a new body
             map.parent.parentNode.replaceChild(standIn, map.parent);
             newBody.insertBefore(map.parent, backDiv);
             document.body = newBody;
 
+            oldscale = getDeviceScale();
+            document.head.appendChild(meta);
+
             bodyDraw(newBody);
             backDraw(backDiv);
-            meta.setAttribute('content',
-                'initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0');
-            document.head.appendChild(meta);
+            meta.setAttribute(
+                'content',
+                'initial-scale=1.0,' +
+                'minimum-scale=0, maximum-scale=10');
             map._smallSize = [map.parent.clientWidth, map.parent.clientHeight];
             maximizeElement(map.parent);
             map.setSize(
@@ -1731,6 +3184,11 @@ wax.mm.mobile = function(map, tilejson, opts) {
             // scale of the page. Anything to not use the meta-element
             // would be a bit of a hack.
             document.body = oldBody;
+
+            meta.setAttribute(
+                'content',
+                'user-scalable=yes, width=device-width,' +
+                'initial-scale=' + oldscale);
             standIn.parentNode.replaceChild(map.parent, standIn);
             minimizeElement(map.parent);
             map.setSize(map._smallSize[0], map._smallSize[1]);
@@ -1758,7 +3216,6 @@ wax.mm.pointselector = function(map, tilejson, opts) {
         mouseUpPoint = null,
         tolerance = 5,
         overlayDiv,
-        MM = com.modestmaps,
         pointselector = {},
         locations = [];
 
@@ -1897,14 +3354,13 @@ wax.mm = wax.mm || {};
 wax.mm.zoombox = function(map) {
     // TODO: respond to resize
     var zoombox = {},
-        mm = com.modestmaps,
         drawing = false,
         box,
         mouseDownPoint = null;
 
     function getMousePoint(e) {
         // start with just the mouse (x, y)
-        var point = new mm.Point(e.clientX, e.clientY);
+        var point = new MM.Point(e.clientX, e.clientY);
         // correct for scrolled document
         point.x += document.body.scrollLeft + document.documentElement.scrollLeft;
         point.y += document.body.scrollTop + document.documentElement.scrollTop;
@@ -1929,8 +3385,8 @@ wax.mm.zoombox = function(map) {
         map.setExtent([l1, l2]);
 
         box.style.display = 'none';
-        mm.removeEvent(map.parent, 'mousemove', mouseMove);
-        mm.removeEvent(map.parent, 'mouseup', mouseUp);
+        MM.removeEvent(map.parent, 'mousemove', mouseMove);
+        MM.removeEvent(map.parent, 'mouseup', mouseUp);
 
         map.parent.style.cursor = 'auto';
     }
@@ -1944,11 +3400,11 @@ wax.mm.zoombox = function(map) {
         box.style.left = mouseDownPoint.x + 'px';
         box.style.top = mouseDownPoint.y + 'px';
 
-        mm.addEvent(map.parent, 'mousemove', mouseMove);
-        mm.addEvent(map.parent, 'mouseup', mouseUp);
+        MM.addEvent(map.parent, 'mousemove', mouseMove);
+        MM.addEvent(map.parent, 'mouseup', mouseUp);
 
         map.parent.style.cursor = 'crosshair';
-        return mm.cancelEvent(e);
+        return MM.cancelEvent(e);
     }
 
     function mouseMove(e) {
@@ -1968,7 +3424,7 @@ wax.mm.zoombox = function(map) {
             box.style.top = mouseDownPoint.y + 'px';
         }
         box.style.height = Math.abs(point.y - mouseDownPoint.y) + 'px';
-        return mm.cancelEvent(e);
+        return MM.cancelEvent(e);
     }
 
     zoombox.add = function(map) {
@@ -1979,13 +3435,13 @@ wax.mm.zoombox = function(map) {
         box.id = map.parent.id + '-zoombox-box';
         box.className = 'zoombox-box';
         map.parent.appendChild(box);
-        mm.addEvent(map.parent, 'mousedown', mouseDown);
+        MM.addEvent(map.parent, 'mousedown', mouseDown);
         return this;
     };
 
     zoombox.remove = function() {
         map.parent.removeChild(box);
-        mm.removeEvent(map.parent, 'mousedown', mouseDown);
+        MM.removeEvent(map.parent, 'mousedown', mouseDown);
     };
 
     return zoombox.add(map);
@@ -2034,9 +3490,9 @@ wax.mm.zoomer = function(map) {
     var zoomer = {
         add: function(map) {
             map.addCallback('drawn', function(map, e) {
-                if (map.coordinate.zoom === map.provider.outerLimits()[0].zoom) {
+                if (map.coordinate.zoom === map.coordLimits[0].zoom) {
                     zoomout.className = 'zoomer zoomout zoomdisabled';
-                } else if (map.coordinate.zoom === map.provider.outerLimits()[1].zoom) {
+                } else if (map.coordinate.zoom === map.coordLimits[1].zoom) {
                     zoomin.className = 'zoomer zoomin zoomdisabled';
                 } else {
                     zoomin.className = 'zoomer zoomin';
@@ -2058,23 +3514,38 @@ wax.mm = wax.mm || {};
 
 // A layer connector for Modest Maps conformant to TileJSON
 // https://github.com/mapbox/tilejson
-wax.mm.connector = function(options) {
+wax.mm.connector = function(tj) {
     this.options = {
-        tiles: options.tiles,
-        scheme: options.scheme || 'xyz',
-        minzoom: options.minzoom || 0,
-        maxzoom: options.maxzoom || 22
+        tiles: tj.tiles,
+        scheme: tj.scheme || 'xyz',
+        minzoom: tj.minzoom || 0,
+        maxzoom: tj.maxzoom || 22,
+        bounds: tj.bounds || [-180, -90, 180, 90]
     };
+
+    if (tj.bounds[0] == -180 && tj.bounds[1] == -90 &&
+        tj.bounds[2] == 180 && tj.bounds[3] == 90) {
+        this.tileLimits = [
+            new MM.Coordinate(0,0,0).zoomTo(tj.minzoom),             // top left outer
+            new MM.Coordinate(1,1,0).zoomTo(tj.maxzoom)
+        ];
+    } else {
+        var p = new MM.MercatorProjection(0,
+          MM.deriveTransformation(-Math.PI,  Math.PI, 0, 0,
+               Math.PI,  Math.PI, 1, 0,
+              -Math.PI, -Math.PI, 0, 1));
+
+        this.tileLimits = [
+            p.locationCoordinate(
+                new MM.Location(tj.bounds[1], tj.bounds[0])).zoomTo(tj.minzoom),
+            p.locationCoordinate(
+                new MM.Location(tj.bounds[3], tj.bounds[2])).zoomTo(tj.maxzoom)
+        ];
+    }
 };
 
 wax.mm.connector.prototype = {
-    outerLimits: function() {
-        return [
-            new com.modestmaps.Coordinate(0,0,0).zoomTo(this.options.minzoom),
-            new com.modestmaps.Coordinate(1,1,0).zoomTo(this.options.maxzoom)
-        ];
-    },
-    getTileUrl: function(c) {
+    getTile: function(c) {
         if (!(coord = this.sourceCoordinate(c))) return null;
 
         coord.row = (this.options.scheme === 'tms') ?
@@ -2091,6 +3562,17 @@ wax.mm.connector.prototype = {
 
 // Wax shouldn't throw any exceptions if the external it relies on isn't
 // present, so check for modestmaps.
-if (com && com.modestmaps) {
-    com.modestmaps.extend(wax.mm.connector, com.modestmaps.MapProvider);
+if (MM) {
+    MM.extend(wax.mm.connector, MM.MapProvider);
 }
+
+wax.mm.limit = function(tj) {
+    var p = new MM.MercatorProjection(0);
+
+    return [
+        p.locationCoordinate(
+            new MM.Location(tj.bounds[1], tj.bounds[0])).zoomTo(tj.minzoom),
+        p.locationCoordinate(
+            new MM.Location(tj.bounds[3], tj.bounds[2])).zoomTo(tj.maxzoom)
+    ];
+};
