@@ -7,6 +7,7 @@ $(document).ready(function() {
 	
 	function buildMap(url){	
 		var m;	
+		console.log(url)
 		$('#mainMap-layers').fadeOut(2000, function(){
 			$(this).remove();
 		});	
