@@ -13,7 +13,7 @@ Last Updated 01/19/12 by Andy Hull
 */
 
 function newWaxMap(url, mapContainer, startLat, startLng, minZoom, maxZoom){
-	minZoom = minZoom || 4;
+	minZoom = minZoom || 2;
 	maxZoom = maxZoom || 10;
 	startLat = startLat || 0;
 	startLng = startLng || 0;
