@@ -239,6 +239,36 @@ a.zoomout {
 	margin: 0 0 5px 0;	
 }
 
+.wax-tooltip {
+  z-index:999999;
+  position:absolute;
+  background:#fff;
+  color:#333;
+  padding:10px;
+  right:30px;
+  top:10px;
+  max-width:300px;
+  opacity:1;
+  -webkit-transition:opacity .5s;
+  -moz-transition:opacity .5s;
+  }
+
+.wax-tooltip.hide { opacity:0; }
+
+.wax-tooltip .close {
+  display:block;
+  position:absolute;
+  top:0px;
+  right:0px;
+	background:#fff url(../images/popup-close.png) no-repeat;
+  }
+
+.wax-mobile-body .wax-tooltip {
+  position:absolute;
+  top:50px;
+  }
+
+
 
 /* --------------------------
   Map Tooltip
