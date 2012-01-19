@@ -13,10 +13,10 @@ Last Updated 01/19/12 by Andy Hull
 */
 
 function newWaxMap(url, mapContainer, startLat, startLng, minZoom, maxZoom){
-	minZoom = minZoom || 0;
+	minZoom = minZoom || 4;
 	maxZoom = maxZoom || 10;
 	startLat = startLat || 0;
-	startLng = startLng || 10;
+	startLng = startLng || 0;
 	var m;	
 	wax.tilejson(url, function(tilejson) {
 		tilejson.minzoom = minZoom;
