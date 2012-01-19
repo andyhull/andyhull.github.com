@@ -25,10 +25,9 @@ function newWaxMap(url, mapContainer, startLat, startLng, minZoom, maxZoom){
 		m = new mm.Map(mapContainer,
 			new wax.mm.connector(tilejson));
 			
-    wax.mm.interaction(m, tilejson).remove();
+    	wax.mm.interaction(m, tilejson).remove();
 	});
 	wax.mm.legend(m, tilejson).appendTo(m.parent);
 	wax.mm.zoomer(m, tilejson).appendTo(m.parent);	
-		m.setCenterZoom(new mm.Location(startLat, startLng), minZoom);
-	}
+	m.setCenterZoom(new mm.Location(startLat, startLng), minZoom);
 } //end newWaxMap
