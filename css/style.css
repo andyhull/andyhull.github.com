@@ -1,0 +1,153 @@
+@charset "UTF-8";
+/* CSS Document */
+
+body {
+/*	background-color: #333 !important;*/
+	background: #333 !important;
+/*	font-family: 'Questrial', sans-serif;	*/
+	color:#f4f4f4;
+/*	font-family: 'Metrophobic', sans-serif;*/
+	font-family: 'Varela', 'Telex',sans-serif;
+}
+
+header {
+	padding-top: 50px;
+}
+
+section.main-content {
+/*	background-color: #FFF;	*/
+}
+
+.alert {
+	padding: 8px 14px !important;	
+}
+
+.alert-info h2 {
+	color: #FFF;
+	margin-bottom: 5px;	
+	font-size:34px;
+}
+
+.alert-info p {
+	font-size: 24px;
+	line-height: 26px;	
+}
+
+.section-header {
+	margin: 70px 0 40px -20px;
+	height: auto;
+	float:left;
+	bottom:120px;
+}
+
+.section-header .well {
+	background-color: #2E1717;
+	padding: 7px 19px !important;
+}
+
+h1.header {
+	font-size: 56px;
+	line-height: 56px;
+	padding-bottom: 4px;
+	margin-bottom: 40px;
+	margin-top: 0;
+	font-weight:300;
+	letter-spacing:-1px;
+	color:#464646;
+}
+
+h3.header {
+	font-size: 18px;
+	text-transform: uppercase;
+	border-bottom:2px solid #333;
+	margin-top: 70px;
+}
+
+/*.section-header .header-body h4 {
+	font-family: Georgia, "Times New Roman", Times, serif;
+	font-family: Arial, sans-serif;
+	padding: 0 40px;
+	color: #D0D0C3;
+	font-size: 16px;
+	line-height: 24px;
+	text-align: center;
+	font-weight:normal;
+	font-style: italic;
+}*/
+
+.header-body {
+}
+
+.section-body {
+/*	margin: 60px 0;	*/
+		margin: 20px 0;	
+}
+
+/*.section-body h2 {
+	line-height: 32px;
+}*/
+
+.section-body h2.head {
+/*	margin-bottom: 60px;*/
+	line-height: 40px;
+	font-size: 37px;
+	letter-spacing:-1px;
+	color:#464646;
+}
+
+.graphText h6{
+	margin:20px 0px;
+/*	text-align:right;*/
+	font-size:16px;
+/*	border-top:1px dotted #464646;*/
+	padding-top:5px;
+	line-height:21px;
+}
+
+h1.sectionTagline{
+	margin-bottom:50px;
+	padding:5px 10px;
+	color:#f4f4f4;
+	background-color: #2E1717;
+    background-image: -moz-linear-gradient(center top , #333333, #222222);
+    background-repeat: repeat-x;
+    border-radius: 4px 4px 4px 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 -1px 0 rgba(0, 0, 0, 0.1) inset;
+	font-size:34px;
+	text-align:center;
+	font-weight:300;
+	position:relative;
+}
+
+.modal h1,
+.modal h2,
+.modal h3,
+.modal h4,
+.modal h5,
+.modal h6 {
+	text-transform: none;
+}
+
+.modal h3 {
+	font-size: 24px;	
+}
+
+/* ======================================== Portofolio ======================================== */
+
+.thumbnail img{
+	width:260px;
+}
+
+.thumbnail{
+	min-height:280px;
+}
+
+/* ======================================== FOOTER ======================================== */
+
+footer {
+	color: #FFF;
+	padding: 33px;	
+	background-color: #464646;
+	margin-top: 70px;
+}
+
