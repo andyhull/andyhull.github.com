@@ -24,8 +24,8 @@ function buildChart(){
 							text: 'Usage',
 						},
 						min:0,
-					max:5,
-					maxPadding: 10
+						max:10,
+						tickInterval: 5
 					},
 					tooltip: {
 						formatter: function() {
@@ -37,23 +37,23 @@ function buildChart(){
 						  enabled: false	
 					  },
 					series: [{
-						data: [1, 2, 3, 3, 4, 5, 5],
+						data: [1, 3, 4, 6, 8, 9, 9],
 						name: 'html'
 					},{
-						data: [1, 2, 3, 3, 4, 5, 5],
+						data: [1, 2, 4, 6, 8, 9, 9],
 						name: 'css'
 					},{	
-						data: [0, 1, 2, 3, 3, 3, 3],
+						data: [0, 7, 7, 5, 3, 3, 3],
 						name: 'php'
 					}, {
-						data: [1, 2, 3, 3, 3, 2, 1],
+						data: [0, 1, 1, 4, 7, 2, 1],
 						name: 'python'
 					}, {
-						data: [1, 2, 3, 3, 4, 5, 5],
+						data: [1, 2, 3, 5, 8, 9, 9],
 						name: 'javascript',
 						dashStyle:'LongDash'
 					},{
-						data: [0, 0, 2, 0, 0,0,0],
+						data: [0, 0, 4, 0, 0,0,0],
 						name: 'rails'
 					}]
 				});
@@ -82,9 +82,8 @@ function buildChart(){
 							text: 'Usage',
 						},
 						min:0,
-						max:5,
-						endOnTick: false,
-						        maxPadding: 100
+						max:10,
+						tickInterval:5
 					},
 					tooltip: {
 						formatter: function() {
@@ -96,22 +95,22 @@ function buildChart(){
 						  enabled: false	
 					  },
 					series: [{
-						data: [4, 5, 5, 4, 3,2,1],
+						data: [6, 9, 9, 7, 3,2,1],
 						name: 'ArcGIS'
 					},{
-						data: [1, 1, 1, 2, 2,4,4],
+						data: [1, 1, 1, 3, 4,9,9],
 						name: 'Quantum GIS'
 					},{	
-						data: [2, 3, 4, 4, 3,2,1],
+						data: [7, 8, 9, 9, 3,2,1],
 						name: 'PostGIS'
 					}, {
-						data: [0, 0, 0, 1, 5, 5, 1],
+						data: [0, 0, 0, 3, 9, 9, 1],
 						name: 'OpenLayers'
 					}, {
-						data: [0, 0, 0, 0, 0, 5, 5],
+						data: [0, 0, 0, 0, 0, 9, 9],
 						name: 'Wax'
 					},{
-						data: [0, 0, 0, 0, 2, 5, 5],
+						data: [0, 0, 0, 0, 4, 9, 9],
 						name: 'MapBox'
 					}]
 				});
