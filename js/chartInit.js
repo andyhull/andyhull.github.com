@@ -1,5 +1,6 @@
 function buildChart(){ 
 		var chart;
+		var yLabels =['Low', 'Medium', 'High'];
 		
 			// $(document).ready(function() {
 				chart = new Highcharts.Chart({
@@ -20,6 +21,18 @@ function buildChart(){
 						}
 					},
 					yAxis: {
+						labels: {
+						            formatter: function() {
+										switch(this.value){
+											case 0:
+											return yLabels[this.value];
+											case 5:
+											return yLabels[1];
+											case 10:
+											return yLabels[2]
+										}
+						            }
+						        },
 						title: {
 							text: 'Usage',
 						},
@@ -83,7 +96,19 @@ function buildChart(){
 						},
 						min:0,
 						max:10,
-						tickInterval:5
+						tickInterval:5,
+						labels: {
+						            formatter: function() {
+										switch(this.value){
+											case 0:
+											return yLabels[this.value];
+											case 5:
+											return yLabels[1];
+											case 10:
+											return yLabels[2]
+										}
+						            }
+						        }
 					},
 					tooltip: {
 						formatter: function() {
