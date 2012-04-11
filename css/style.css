@@ -134,6 +134,10 @@ h1.sectionTagline{
 
 /* ======================================== Portofolio ======================================== */
 
+.caption{
+	margin-top:10px;
+}
+
 .thumbnail img{
 	width:260px;
 	height:185px;
